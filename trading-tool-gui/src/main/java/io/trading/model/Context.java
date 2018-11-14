@@ -1,6 +1,6 @@
-package model;
+package io.trading.model;
 
-import provider.ConnectionProvider;
+import io.trading.provider.ConnectionProvider;
 
 public class Context {
     private String username;

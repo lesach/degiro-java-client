@@ -1,4 +1,4 @@
-package provider;
+package io.trading.provider;
 
 import cat.indiketa.degiro.DeGiro;
 import cat.indiketa.degiro.model.DProductDescription;

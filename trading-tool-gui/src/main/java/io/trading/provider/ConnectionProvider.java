@@ -1,9 +1,8 @@
-package provider;
+package io.trading.provider;
 
 import cat.indiketa.degiro.DeGiro;
 import cat.indiketa.degiro.DeGiroFactory;
 import cat.indiketa.degiro.utils.DCredentials;
-import config.AppConfig;
 
 public class ConnectionProvider {
     private DeGiro degiro;

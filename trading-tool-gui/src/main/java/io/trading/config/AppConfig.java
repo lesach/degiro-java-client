@@ -1,4 +1,4 @@
-package config;
+package io.trading.config;
 
 import java.util.Map;
 
