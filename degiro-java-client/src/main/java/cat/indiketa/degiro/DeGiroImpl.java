@@ -320,7 +320,7 @@ public class DeGiroImpl implements DeGiro {
         List<Header> headers = new ArrayList<>(1);
         headers.add(new BasicHeader("Origin", session.getConfig().getTradingUrl()));
 
-        HashMap<String, String> data = new HashMap();
+        HashMap<String, String> data = new HashMap<>();
         data.put("controlData", generatePriceRequestPayload());
 
         DResponse response = comm.getUrlData("https://degiro.quotecast.vwdservices.com/CORS", "/" + session.getVwdSession(), data, headers);

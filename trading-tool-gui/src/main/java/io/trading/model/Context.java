@@ -1,10 +1,13 @@
 package io.trading.model;
 
 import cat.indiketa.degiro.model.DPortfolioSummary;
+import cat.indiketa.degiro.model.DProductDescription;
 import io.trading.controller.MainController;
 import io.trading.provider.ConnectionProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.List;
 
 public class Context {
     private static final Logger logger = LogManager.getLogger(Context.class);
@@ -61,6 +64,14 @@ public class Context {
         connection = new ConnectionProvider(username, password);
         portfolioSummary = connection.getPortfolioSummary();
         return portfolioSummary != null;
+    }
+
+    /**
+     * Search product
+     * @param text
+     */
+    public List<DProductDescription> searchProducts(String text) {
+        return this.connection.searchProducts(text);
     }
 
 }
