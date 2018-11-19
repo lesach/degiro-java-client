@@ -1,6 +1,7 @@
 package io.trading.model;
 
 import cat.indiketa.degiro.model.DPortfolioSummary;
+import cat.indiketa.degiro.model.DPriceListener;
 import cat.indiketa.degiro.model.DProductDescription;
 import io.trading.controller.MainController;
 import io.trading.provider.ConnectionProvider;
@@ -64,6 +65,37 @@ public class Context {
         connection = new ConnectionProvider(username, password);
         portfolioSummary = connection.getPortfolioSummary();
         return portfolioSummary != null;
+    }
+
+    /**
+     * set listener on price refresh
+     * @param listener listener
+     */
+    public void setPriceListener(DPriceListener listener) {
+       connection.setPriceListener(listener);
+    }
+
+    /**
+     * Clear watch list
+     */
+    public void clearPriceSubscriptions() {
+        connection.clearPriceSubscriptions();;
+    }
+
+    /**
+     * Add product to watch
+     * @param vwdId Ids list
+     */
+    public void subscribeToPrice(String vwdId) {
+        connection.subscribeToPrice(vwdId);
+    }
+
+    /**
+     * Remove product to watch
+     * @param vwdId Ids list
+     */
+    public void unsubscribeToPrice(String vwdId) {
+        connection.unsubscribeToPrice(vwdId);
     }
 
     /**

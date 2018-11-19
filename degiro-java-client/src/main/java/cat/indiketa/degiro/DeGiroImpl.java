@@ -69,7 +69,7 @@ public class DeGiroImpl implements DeGiro {
     private final DSession session;
     private final Gson gson;
     private DPriceListener priceListener;
-    private long pollingInterval = TimeUnit.SECONDS.toMillis(1);
+    private long pollingInterval = TimeUnit.SECONDS.toMillis(5);
     private Timer pricePoller = null;
     private static final String BASE_TRADER_URL = "https://trader.degiro.nl";
     private final Map<String, Long> subscribedVwdIssues;

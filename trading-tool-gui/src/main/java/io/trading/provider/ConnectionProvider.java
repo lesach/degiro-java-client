@@ -2,16 +2,14 @@ package io.trading.provider;
 
 import cat.indiketa.degiro.DeGiro;
 import cat.indiketa.degiro.DeGiroFactory;
-import cat.indiketa.degiro.model.DPortfolioSummary;
-import cat.indiketa.degiro.model.DProductDescription;
-import cat.indiketa.degiro.model.DProductSearch;
-import cat.indiketa.degiro.model.DProductType;
+import cat.indiketa.degiro.model.*;
 import cat.indiketa.degiro.utils.DCredentials;
 import io.trading.model.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ConnectionProvider {
     private static final Logger logger = LogManager.getLogger(ConnectionProvider.class);
@@ -37,6 +35,43 @@ public class ConnectionProvider {
         this.degiro = DeGiroFactory.newInstance(creds);
     }
 
+
+    /**
+     * set listener on price refresh
+     * @param listener listener
+     */
+    public void setPriceListener(DPriceListener listener) {
+        degiro.setPriceListener(listener);
+    }
+
+
+    /**
+     * Add product to watch
+     * @param vwdId Ids list
+     */
+    public void subscribeToPrice(String vwdId) {
+        try {
+            degiro.subscribeToPrice(vwdId);
+        }
+        catch (Exception e){
+            logger.error("ERROR in subscribeToPrice", e);
+        }
+    }
+
+    /**
+     * Remove product to watch
+     * @param vwdId Ids list
+     */
+    public void unsubscribeToPrice(String vwdId) {
+        degiro.unsubscribeToPrice(vwdId);
+    }
+
+    /**
+     * Clear watch list
+     */
+    public void clearPriceSubscriptions() {
+        degiro.clearPriceSubscriptions();;
+    }
 
     /**
      * Return true if connection is established
