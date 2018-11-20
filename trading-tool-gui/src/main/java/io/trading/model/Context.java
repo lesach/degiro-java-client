@@ -1,8 +1,6 @@
 package io.trading.model;
 
-import cat.indiketa.degiro.model.DPortfolioSummary;
-import cat.indiketa.degiro.model.DPriceListener;
-import cat.indiketa.degiro.model.DProductDescription;
+import cat.indiketa.degiro.model.*;
 import io.trading.controller.MainController;
 import io.trading.provider.ConnectionProvider;
 import org.apache.logging.log4j.LogManager;
@@ -100,10 +98,26 @@ public class Context {
 
     /**
      * Search product
-     * @param text
+     * @param text to search
      */
     public List<DProductDescription> searchProducts(String text) {
         return this.connection.searchProducts(text);
     }
 
+
+    /**
+     * Return position state
+     * @return position list
+     */
+    public DPortfolioProducts getPortfolio() {
+        return this.connection.getPortfolio();
+    }
+
+    /**
+     * Return orders state
+     * @return orders list
+     */
+    public List<DOrder> getOrders() {
+        return this.connection.getOrders();
+    }
 }

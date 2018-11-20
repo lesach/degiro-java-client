@@ -1,18 +1,21 @@
 package io.trading.model.tableview;
 
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 public class OrderTableViewSchema {
+    private final SimpleStringProperty id;
     private final SimpleStringProperty buyOrSell;
     private final SimpleStringProperty product;
     private final SimpleStringProperty orderType;
     private final SimpleDoubleProperty price;
     private final SimpleStringProperty currency;
-    private final SimpleDoubleProperty quantity;
+    private final SimpleLongProperty quantity;
 
     /**
      *
+     * @param id
      * @param buyOrSell
      * @param product
      * @param orderType
@@ -20,18 +23,46 @@ public class OrderTableViewSchema {
      * @param currency
      * @param quantity
      */
-    public OrderTableViewSchema(String buyOrSell,
+    public OrderTableViewSchema(String id,
+                                String buyOrSell,
                                 String product,
                                 String orderType,
                                 double price,
                                 String currency,
-                                double quantity) {
+                                long quantity) {
+        this.id = new SimpleStringProperty(id);
         this.buyOrSell = new SimpleStringProperty(buyOrSell);
         this.product = new SimpleStringProperty(product);
         this.orderType = new SimpleStringProperty(orderType);
         this.price = new SimpleDoubleProperty(price);
         this.currency = new SimpleStringProperty(currency);
-        this.quantity = new SimpleDoubleProperty(quantity);
+        this.quantity = new SimpleLongProperty(quantity);
+    }
+
+    /**
+     *
+     * @param id
+     * @param buyOrSell
+     * @param product
+     * @param orderType
+     * @param price
+     * @param currency
+     * @param quantity
+     */
+    public void update (String id,
+                        String buyOrSell,
+                        String product,
+                        String orderType,
+                        double price,
+                        String currency,
+                        long quantity) {
+        this.setId(id);
+        this.setBuyOrSell(buyOrSell);
+        this.setProduct(product);
+        this.setOrderType(orderType);
+        this.setPrice(price);
+        this.setCurrency(currency);
+        this.setQuantity(quantity);
     }
 
 
@@ -95,15 +126,27 @@ public class OrderTableViewSchema {
         this.currency.set(currency);
     }
 
-    public double getQuantity() {
+    public long getQuantity() {
         return quantity.get();
     }
 
-    public SimpleDoubleProperty quantityProperty() {
+    public SimpleLongProperty quantityProperty() {
         return quantity;
     }
 
-    public void setQuantity(double quantity) {
+    public void setQuantity(long quantity) {
         this.quantity.set(quantity);
+    }
+
+    public String getId() {
+        return id.get();
+    }
+
+    public SimpleStringProperty idProperty() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id.set(id);
     }
 }

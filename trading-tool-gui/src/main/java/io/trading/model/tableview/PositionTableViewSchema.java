@@ -1,9 +1,16 @@
 package io.trading.model.tableview;
 
+
+import javafx.beans.Observable;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.util.Callback;
+
+import java.beans.PropertyChangeSupport;
 
 public class PositionTableViewSchema {
+    private final SimpleLongProperty id;
     private final SimpleStringProperty product;
     private final SimpleStringProperty place;
     private final SimpleDoubleProperty price;
@@ -29,7 +36,8 @@ public class PositionTableViewSchema {
      * @param totalPL
      * @param time
      */
-    private PositionTableViewSchema(String product,
+    public PositionTableViewSchema(long id,
+                                    String product,
                                     String place,
                                     double price,
                                     double quantity,
@@ -39,6 +47,7 @@ public class PositionTableViewSchema {
                                     double dailyVariation,
                                     double totalPL,
                                     String time) {
+        this.id = new SimpleLongProperty(id);
         this.product = new SimpleStringProperty(product);
         this.place = new SimpleStringProperty(place);
         this.price = new SimpleDoubleProperty(price);
@@ -52,6 +61,60 @@ public class PositionTableViewSchema {
     }
 
 
+    /**
+     *
+     * @param product
+     * @param place
+     * @param price
+     * @param quantity
+     * @param currency
+     * @param total
+     * @param dailyPL
+     * @param dailyVariation
+     * @param quantity
+     * @param totalPL
+     * @param time
+     */
+    public void update(long id,
+                       String product,
+                       String place,
+                       double price,
+                       double quantity,
+                       String currency,
+                       double total,
+                       double dailyPL,
+                       double dailyVariation,
+                       double totalPL,
+                       String time) {
+        this.setId(id);
+        this.setProduct(product);
+        this.setPlace(place);
+        this.setPrice (price);
+        this.setQuantity(quantity);
+        this.setCurrency (currency);
+        this.setTotal(total);
+        this.setDailyPL(dailyPL);
+        this.setDailyVariation(dailyVariation);
+        this.setTotalPL(totalPL);
+        this.setTime(time);
+    }
+
+    public static Callback<PositionTableViewSchema, Observable[]> extractor() {
+        return (PositionTableViewSchema p) -> new Observable[]{
+            p.idProperty(),
+            p.productProperty(),
+            p.placeProperty(),
+            p.priceProperty(),
+            p.quantityProperty(),
+            p.currencyProperty(),
+            p.totalProperty(),
+            p.dailyPLProperty(),
+            p.dailyVariationProperty(),
+            p.totalPLProperty(),
+            p.timeProperty()
+        };
+    }
+
     public String getProduct() {
         return product.get();
     }
@@ -62,6 +125,7 @@ public class PositionTableViewSchema {
 
     public void setProduct(String product) {
         this.product.set(product);
+
     }
 
     public String getPlace() {
@@ -170,5 +234,17 @@ public class PositionTableViewSchema {
 
     public void setTime(String time) {
         this.time.set(time);
+    }
+
+    public long getId() {
+        return id.get();
+    }
+
+    public SimpleLongProperty idProperty() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id.set(id);
     }
 }

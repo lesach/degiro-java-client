@@ -1,9 +1,6 @@
 package io.trading.controller;
 
-import cat.indiketa.degiro.model.DPortfolioSummary;
-import cat.indiketa.degiro.model.DPrice;
-import cat.indiketa.degiro.model.DPriceListener;
-import cat.indiketa.degiro.model.DProductDescription;
+import cat.indiketa.degiro.model.*;
 import com.google.gson.GsonBuilder;
 import io.trading.model.Context;
 import io.trading.model.tableview.OrderTableViewSchema;
@@ -12,6 +9,7 @@ import io.trading.utils.Format;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -32,8 +30,8 @@ public class MainController implements Initializable {
 
     private Context context;
     private DProductDescription callProduct;
-    private final ObservableList<PositionTableViewSchema> positions = FXCollections.observableArrayList();
-    private final ObservableList<OrderTableViewSchema> orders = FXCollections.observableArrayList();
+    private final ObservableList<PositionTableViewSchema> positionsData = FXCollections.observableArrayList(PositionTableViewSchema.extractor());
+    private final ObservableList<OrderTableViewSchema> ordersData = FXCollections.observableArrayList();
 
 
     // Credentials pane
@@ -43,6 +41,7 @@ public class MainController implements Initializable {
     @FXML private Circle shpConnected;
 
     // Position pane
+    @FXML private Button btnPositionsRefresh;
     @FXML private TextField txtName;
     @FXML private TextField txtTotal;
     @FXML private TextField txtShares;
@@ -87,9 +86,26 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         logger.info("Controller loading...");
         context = new Context();
+        // Positions table
         colPositionProduct.setCellValueFactory(new PropertyValueFactory<>("Product"));
-        tabOrders.setItems(orders);
-        tabPositions.setItems(positions);
+        colPositionPlace.setCellValueFactory(new PropertyValueFactory<>("Place"));
+        colPositionQuantity.setCellValueFactory(new PropertyValueFactory<>("Quantity"));
+        colPositionPrice.setCellValueFactory(new PropertyValueFactory<>("Price"));
+        colPositionCurrency.setCellValueFactory(new PropertyValueFactory<>("Currency"));
+        colPositionTotal.setCellValueFactory(new PropertyValueFactory<>("Total"));
+        colPositionDailyPL.setCellValueFactory(new PropertyValueFactory<>("DailyPL"));
+        colPositionDailyVariation.setCellValueFactory(new PropertyValueFactory<>("DailyVariation"));
+        colPositionTotalPL.setCellValueFactory(new PropertyValueFactory<>("TotalPL"));
+        colPositionTime.setCellValueFactory(new PropertyValueFactory<>("Time"));
+        tabPositions.setItems(positionsData);
+        // Orders table
+        colOrderBuyOrSell.setCellValueFactory(new PropertyValueFactory<>("BuyOrSell"));
+        colOrderProduct.setCellValueFactory(new PropertyValueFactory<>("Product"));
+        colOrderType.setCellValueFactory(new PropertyValueFactory<>("OrderType"));
+        colOrderLimit.setCellValueFactory(new PropertyValueFactory<>("Limit"));
+        colOrderQuantity.setCellValueFactory(new PropertyValueFactory<>("Quantity"));
+        colOrderCurrency.setCellValueFactory(new PropertyValueFactory<>("Currency"));
+        tabOrders.setItems(ordersData);
         logger.info("Controller is now loaded");
     }
 
@@ -144,6 +160,47 @@ public class MainController implements Initializable {
        }
     }
 
+
+    /**
+     * Connect to API
+     * @param event trigger
+     */
+    @FXML protected void handlePositionsRefreshButtonAction(ActionEvent event) {
+        logger.info("Refresh Positions button pressed");
+        FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == 123456L);
+        if (list.isEmpty()) {
+            PositionTableViewSchema s = new PositionTableViewSchema(123456L,
+                    "Product",
+                    "Place",
+                    987.4D,
+                    546L,
+                    "EUR",
+                    987564.54D,
+                    123.74D,
+                    21.4D,
+                    -65.45D,
+                    Format.formatDate(new Date())
+            );
+            positionsData.add(s);
+        }
+        else {
+            PositionTableViewSchema s = list.get(0);
+            s.update(123456L,
+                    "Product",
+                    "Place",
+                    1987.4D,
+                    546L,
+                    "EUR",
+                    64.54D,
+                    123.74D,
+                    21.4D,
+                    -105.45D,
+                    Format.formatDate(new Date())
+            );
+        }
+        //updatePositions();
+    }
+
     /**
      * Connect to API
      * @param event trigger
@@ -173,7 +230,6 @@ public class MainController implements Initializable {
                                         lblCallProductTime.setText(Format.formatDate(new Date()));
                                     }
                             );
-
                         }
                     }
                 });
@@ -208,7 +264,7 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Fill Porfolio panel
+     * Fill Call panel
      */
     private void displayCallProduct() {
         if (callProduct == null) {
@@ -243,4 +299,77 @@ public class MainController implements Initializable {
         displayCallProduct();
     }
 
+    /**
+     * Display positionsData
+     */
+    private void updatePositions() {
+        DPortfolioProducts produtcs = this.context.getPortfolio();
+        produtcs.getActive().forEach(p -> {
+            FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == p.getId());
+            PositionTableViewSchema s;
+            if (list.isEmpty()) {
+                s = new PositionTableViewSchema(p.getId(),
+                        p.getProduct(),
+                        p.getExchangeBriefCode(),
+                        p.getPrice().doubleValue(),
+                        p.getContractSize(),
+                        p.getCurrency(),
+                        p.getValue().doubleValue(),
+                        p.getTodayPlBase().doubleValue(),
+                        ((p.getPrice().doubleValue() - p.getClosePrice().doubleValue()) * p.getContractSize()),
+                        p.getPlBase().doubleValue(),
+                        Format.formatDate(p.getLastUpdate())
+                        );
+                positionsData.add(s);
+            }
+            else {
+                s = list.get(0);
+                s.update(p.getId(),
+                        p.getProduct(),
+                        p.getExchangeBriefCode(),
+                        p.getPrice().doubleValue(),
+                        p.getContractSize(),
+                        p.getCurrency(),
+                        p.getValue().doubleValue(),
+                        p.getTodayPlBase().doubleValue(),
+                        ((p.getPrice().doubleValue() - p.getClosePrice().doubleValue()) * p.getContractSize()),
+                        p.getPlBase().doubleValue(),
+                        Format.formatDate(p.getLastUpdate())
+                );
+            }
+        });
+    }
+
+    /**
+     * Display ordersData
+     */
+    private void updateOrders() {
+        List<DOrder> orders = this.context.getOrders();
+        orders.forEach(o -> {
+            FilteredList<OrderTableViewSchema> list = this.ordersData.filtered(t -> t.getId().equals(o.getId()));
+            OrderTableViewSchema s;
+            if (list.isEmpty()) {
+                s = new OrderTableViewSchema(o.getId(),
+                        o.getBuysell().getStrValue(),
+                        o.getProduct(),
+                        o.getOrderType().getStrValue(),
+                        o.getPrice().doubleValue(),
+                        o.getCurrency(),
+                        o.getQuantity()
+                );
+                ordersData.add(s);
+            }
+            else {
+                s = list.get(0);
+                s.update(o.getId(),
+                        o.getBuysell().getStrValue(),
+                        o.getProduct(),
+                        o.getOrderType().getStrValue(),
+                        o.getPrice().doubleValue(),
+                        o.getCurrency(),
+                        o.getQuantity()
+                );
+            }
+        });
+    }
 }

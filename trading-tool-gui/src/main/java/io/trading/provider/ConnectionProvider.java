@@ -4,12 +4,10 @@ import cat.indiketa.degiro.DeGiro;
 import cat.indiketa.degiro.DeGiroFactory;
 import cat.indiketa.degiro.model.*;
 import cat.indiketa.degiro.utils.DCredentials;
-import io.trading.model.Context;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ConnectionProvider {
     private static final Logger logger = LogManager.getLogger(ConnectionProvider.class);
@@ -99,6 +97,35 @@ public class ConnectionProvider {
         }
         catch (Exception e) {
             logger.error("ERROR in searchProducts", e);
+            return null;
+        }
+    }
+
+    /**
+     * Return position state
+     * @return position list
+     */
+    public DPortfolioProducts getPortfolio() {
+        try {
+            return this.degiro.getPortfolio();
+        }
+        catch (Exception e) {
+            logger.error("ERROR in getPortfolio", e);
+            return null;
+        }
+    }
+
+
+    /**
+     * Return orders state
+     * @return orders list
+     */
+    public List<DOrder> getOrders() {
+        try {
+            return this.degiro.getOrders();
+        }
+        catch (Exception e) {
+            logger.error("ERROR in getOrders", e);
             return null;
         }
     }

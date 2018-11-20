@@ -6,9 +6,18 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox minHeight="800.0" minWidth="1024.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.trading.controller.MainController">
+<GridPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.trading.controller.MainController">
+   <columnConstraints>
+      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+   </rowConstraints>
    <children>
-      <TitledPane animated="false" collapsible="false" maxHeight="130.0" text="Client">
+      <TitledPane collapsible="false" maxHeight="130.0" text="Client">
          <content>
             <TabPane tabClosingPolicy="UNAVAILABLE">
               <tabs>
@@ -119,7 +128,21 @@
             </TabPane>
          </content>
       </TitledPane>
-      <TitledPane maxHeight="120.0" text="Positions">
+      <TitledPane collapsible="false" maxHeight="150.0" text="Orders" GridPane.rowIndex="2">
+         <content>
+            <TableView fx:id="tabOrders" prefHeight="200.0" prefWidth="200.0">
+              <columns>
+                <TableColumn fx:id="colOrderBuyOrSell" prefWidth="75.0" text="Buy Or Sell" />
+                <TableColumn fx:id="colOrderProduct" prefWidth="75.0" text="Product" />
+                <TableColumn fx:id="colOrderType" prefWidth="75.0" text="Order Type" />
+                <TableColumn fx:id="colOrderLimit" prefWidth="75.0" text="Limit" />
+                <TableColumn fx:id="colOrderQuantity" prefWidth="75.0" text="Quantity" />
+                <TableColumn fx:id="colOrderCurrency" prefWidth="75.0" text="Currency" />
+              </columns>
+            </TableView>
+         </content>
+      </TitledPane>
+      <TitledPane collapsible="false" maxHeight="120.0" text="Positions" GridPane.rowIndex="1">
          <content>
             <TableView fx:id="tabPositions">
               <columns>
@@ -135,22 +158,12 @@
                 <TableColumn fx:id="colPositionTime" prefWidth="75.0" text="Time" />
               </columns>
             </TableView>
-         </content></TitledPane>
-      <TitledPane animated="false" maxHeight="150.0" text="Orders">
-         <content>
-            <TableView fx:id="tabOrders" prefHeight="200.0" prefWidth="200.0">
-              <columns>
-                <TableColumn fx:id="colOrderBuyOrSell" prefWidth="75.0" text="Buy Or Sell" />
-                <TableColumn fx:id="colOrderProduct" prefWidth="75.0" text="Product" />
-                <TableColumn fx:id="colOrderType" prefWidth="75.0" text="Order Type" />
-                <TableColumn fx:id="colOrderLimit" prefWidth="75.0" text="Limit" />
-                <TableColumn fx:id="colOrderQuantity" prefWidth="75.0" text="Quantity" />
-                <TableColumn fx:id="colOrderCurrency" prefWidth="75.0" text="Currency" />
-              </columns>
-            </TableView>
          </content>
+         <graphic>
+            <Button fx:id="btnPositionsRefresh" mnemonicParsing="false" onAction="#handlePositionsRefreshButtonAction" text="Refresh" />
+         </graphic>
       </TitledPane>
-      <TitledPane prefHeight="200.0" prefWidth="200.0" text="Products">
+      <TitledPane collapsible="false" prefHeight="200.0" prefWidth="200.0" text="Products" GridPane.rowIndex="3">
          <content>
             <GridPane>
               <columnConstraints>
@@ -191,4 +204,4 @@
          </content>
       </TitledPane>
    </children>
-</VBox>
+</GridPane>
