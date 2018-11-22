@@ -17,6 +17,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,14 +34,13 @@ public class MainController implements Initializable {
     private final ObservableList<PositionTableViewSchema> positionsData = FXCollections.observableArrayList(PositionTableViewSchema.extractor());
     private final ObservableList<OrderTableViewSchema> ordersData = FXCollections.observableArrayList();
 
-
     // Credentials pane
     @FXML private TextField txtUser;
     @FXML private TextField txtPassword;
     @FXML private Button btnConnect;
     @FXML private Circle shpConnected;
 
-    // Position pane
+    // Client pane
     @FXML private Button btnPositionsRefresh;
     @FXML private TextField txtName;
     @FXML private TextField txtTotal;
@@ -58,6 +58,8 @@ public class MainController implements Initializable {
     @FXML private Label lblCallProductTime;
     @FXML private Label lblCallProductLastValue;
     @FXML private Label lblCallProductLastTime;
+    @FXML private Button btnCallProductBuy;
+    @FXML private TextField txtCallProductBuyQuantity;
 
     // Position Table
     @FXML TableView<PositionTableViewSchema> tabPositions;
@@ -71,15 +73,17 @@ public class MainController implements Initializable {
     @FXML TableColumn<PositionTableViewSchema, Double> colPositionDailyVariation;
     @FXML TableColumn<PositionTableViewSchema, Double> colPositionTotalPL;
     @FXML TableColumn<PositionTableViewSchema, String> colPositionTime;
+    @FXML TableColumn<PositionTableViewSchema, String> colPositionSell;
 
     // Order table
     @FXML TableView<OrderTableViewSchema> tabOrders;
-    @FXML TableColumn<PositionTableViewSchema, String> colOrderBuyOrSell;
-    @FXML TableColumn<PositionTableViewSchema, String> colOrderProduct;
-    @FXML TableColumn<PositionTableViewSchema, String> colOrderType;
-    @FXML TableColumn<PositionTableViewSchema, Double> colOrderLimit;
-    @FXML TableColumn<PositionTableViewSchema, Double> colOrderQuantity;
-    @FXML TableColumn<PositionTableViewSchema, String> colOrderCurrency;
+    @FXML TableColumn<OrderTableViewSchema, String> colOrderBuyOrSell;
+    @FXML TableColumn<OrderTableViewSchema, String> colOrderProduct;
+    @FXML TableColumn<OrderTableViewSchema, String> colOrderType;
+    @FXML TableColumn<OrderTableViewSchema, Double> colOrderLimit;
+    @FXML TableColumn<OrderTableViewSchema, Double> colOrderQuantity;
+    @FXML TableColumn<OrderTableViewSchema, String> colOrderCurrency;
+    @FXML TableColumn<OrderTableViewSchema, String> colOrderDelete;
 
 
     @Override
@@ -87,24 +91,84 @@ public class MainController implements Initializable {
         logger.info("Controller loading...");
         context = new Context();
         // Positions table
-        colPositionProduct.setCellValueFactory(new PropertyValueFactory<>("Product"));
-        colPositionPlace.setCellValueFactory(new PropertyValueFactory<>("Place"));
-        colPositionQuantity.setCellValueFactory(new PropertyValueFactory<>("Quantity"));
-        colPositionPrice.setCellValueFactory(new PropertyValueFactory<>("Price"));
-        colPositionCurrency.setCellValueFactory(new PropertyValueFactory<>("Currency"));
-        colPositionTotal.setCellValueFactory(new PropertyValueFactory<>("Total"));
-        colPositionDailyPL.setCellValueFactory(new PropertyValueFactory<>("DailyPL"));
-        colPositionDailyVariation.setCellValueFactory(new PropertyValueFactory<>("DailyVariation"));
-        colPositionTotalPL.setCellValueFactory(new PropertyValueFactory<>("TotalPL"));
-        colPositionTime.setCellValueFactory(new PropertyValueFactory<>("Time"));
+        colPositionProduct.setCellValueFactory(new PropertyValueFactory<>("product"));
+        colPositionPlace.setCellValueFactory(new PropertyValueFactory<>("place"));
+        colPositionQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        colPositionPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
+        colPositionCurrency.setCellValueFactory(new PropertyValueFactory<>("currency"));
+        colPositionTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
+        colPositionDailyPL.setCellValueFactory(new PropertyValueFactory<>("dailyPL"));
+        colPositionDailyVariation.setCellValueFactory(new PropertyValueFactory<>("dailyVariation"));
+        colPositionTotalPL.setCellValueFactory(new PropertyValueFactory<>("totalPL"));
+        colPositionTime.setCellValueFactory(new PropertyValueFactory<>("time"));
+        colPositionSell.setCellValueFactory(new PropertyValueFactory<>("DUMMY"));
+        Callback<TableColumn<PositionTableViewSchema, String>,
+                TableCell<PositionTableViewSchema, String>> positionCellFactory
+                = new Callback<TableColumn<PositionTableViewSchema, String>,
+                        TableCell<PositionTableViewSchema, String>>() {
+
+                    @Override
+                    public TableCell<PositionTableViewSchema, String> call(final TableColumn<PositionTableViewSchema, String> param) {
+                        return new TableCell<PositionTableViewSchema, String>() {
+
+                            final Button btn = new Button("X");
+
+                            @Override
+                            public void updateItem(String item, boolean empty) {
+                                super.updateItem(item, empty);
+                                if (empty) {
+                                    setGraphic(null);
+                                    setText(null);
+                                } else {
+                                    btn.setOnAction(event -> {
+                                        PositionTableViewSchema p = getTableView().getItems().get(getIndex());
+                                        logger.info("Sell product: " + p.getProduct() + " -> " + Format.formatBigDecimal(p.getPrice()));
+                                    });
+                                    setGraphic(btn);
+                                    setText(null);
+                                }
+                            }
+                        };
+                    }
+                };
+        colPositionSell.setCellFactory(positionCellFactory);
+
         tabPositions.setItems(positionsData);
         // Orders table
-        colOrderBuyOrSell.setCellValueFactory(new PropertyValueFactory<>("BuyOrSell"));
-        colOrderProduct.setCellValueFactory(new PropertyValueFactory<>("Product"));
-        colOrderType.setCellValueFactory(new PropertyValueFactory<>("OrderType"));
-        colOrderLimit.setCellValueFactory(new PropertyValueFactory<>("Limit"));
-        colOrderQuantity.setCellValueFactory(new PropertyValueFactory<>("Quantity"));
-        colOrderCurrency.setCellValueFactory(new PropertyValueFactory<>("Currency"));
+        colOrderBuyOrSell.setCellValueFactory(new PropertyValueFactory<>("buyOrSell"));
+        colOrderProduct.setCellValueFactory(new PropertyValueFactory<>("product"));
+        colOrderType.setCellValueFactory(new PropertyValueFactory<>("orderType"));
+        colOrderLimit.setCellValueFactory(new PropertyValueFactory<>("limit"));
+        colOrderQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        colOrderCurrency.setCellValueFactory(new PropertyValueFactory<>("currency"));
+        colOrderDelete.setCellValueFactory(new PropertyValueFactory<>("DUMMY"));
+        Callback<TableColumn<OrderTableViewSchema, String>,
+                TableCell<OrderTableViewSchema, String>> orderCellFactory
+                = new Callback<TableColumn<OrderTableViewSchema, String>,
+                TableCell<OrderTableViewSchema, String>>() {
+            @Override
+            public TableCell<OrderTableViewSchema, String> call(final TableColumn<OrderTableViewSchema, String> param) {
+                return new TableCell<OrderTableViewSchema, String>() {
+                    final Button btn = new Button("X");
+                    @Override
+                    public void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                            setText(null);
+                        } else {
+                            btn.setOnAction(event -> {
+                                OrderTableViewSchema o = getTableView().getItems().get(getIndex());
+                                logger.info("Delete order: " + o.getProduct() + " -> " + Format.formatBigDecimal(o.getPrice()));
+                            });
+                            setGraphic(btn);
+                            setText(null);
+                        }
+                    }
+                };
+            }
+        };
+        colOrderDelete.setCellFactory(orderCellFactory);
         tabOrders.setItems(ordersData);
         logger.info("Controller is now loaded");
     }
@@ -272,12 +336,16 @@ public class MainController implements Initializable {
             lblCallProductAsk.setText("");
             lblCallProductBid.setText("");
             context.clearPriceSubscriptions();
+            txtCallProductBuyQuantity.setDisable(true);
+            btnCallProductBuy.setDisable(true);
         }
         else {
             lblCallProductName.setText(callProduct.getName() + "(" + callProduct.getSymbol() + " / " + callProduct.getIsin() + ")");
             lblCallProductAsk.setText("");
             lblCallProductBid.setText("");
             context.subscribeToPrice(callProduct.getVwdId());
+            txtCallProductBuyQuantity.setDisable(callProduct.isTradable());
+            btnCallProductBuy.setDisable(callProduct.isTradable());
         }
     }
 
@@ -372,4 +440,47 @@ public class MainController implements Initializable {
             }
         });
     }
+
+
+
+    /**
+     * Create an order to Buy Call Product
+     * @param event trigger
+     */
+    @FXML protected void handleCallProductBuyButtonAction(ActionEvent event) {
+        logger.info("Call Product Buy button pressed");
+        FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == 123456L);
+        if (this.callProduct != null) {
+            if (this.callProduct.isTradable())
+            {
+                logger.info("Creating Buy order");
+                // Generate a new order. Signature:
+                // public DNewOrder(DOrderAction action, DOrderType orderType, DOrderTime timeType, long productId, long size, BigDecimal limitPrice, BigDecimal stopPrice)
+
+                DNewOrder order = new DNewOrder(DOrderAction.SELL,
+                        DOrderType.LIMITED,
+                        DOrderTime.DAY,
+                        callProduct.getId(),
+                        Long.parseLong(txtCallProductBuyQuantity.getText()),
+                        Format.parseBigDecimal(lblCallProductAsk.getText()),
+                        null);
+
+                DOrderConfirmation confirmation = context.checkOrder(order);
+
+                if (!confirmation.getConfirmationId().isEmpty()) {
+                    DPlacedOrder placed = context.confirmOrder(order, confirmation);
+                    if (placed.getStatus() != 0) {
+                        throw new RuntimeException("Order not placed: " + placed.getStatusText());
+                    }
+                }
+            }
+            else{
+                logger.info("The call product has to be Tradable");
+            }
+        }
+        else {
+            logger.info("A call product has to be selected");
+        }
+    }
+
 }

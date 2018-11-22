@@ -21,6 +21,7 @@ public class PositionTableViewSchema {
     private final SimpleDoubleProperty dailyVariation;
     private final SimpleDoubleProperty totalPL;
     private final SimpleStringProperty time;
+    private final SimpleStringProperty DUMMY;
 
     /**
      *
@@ -58,6 +59,7 @@ public class PositionTableViewSchema {
         this.dailyVariation = new SimpleDoubleProperty(dailyVariation);
         this.totalPL = new SimpleDoubleProperty(totalPL);
         this.time = new SimpleStringProperty(time);
+        this.DUMMY = new SimpleStringProperty(null);
     }
 
 
@@ -246,5 +248,18 @@ public class PositionTableViewSchema {
 
     public void setId(long id) {
         this.id.set(id);
+    }
+
+
+    public String getDUMMY() {
+        return DUMMY.get();
+    }
+
+    public SimpleStringProperty DUMMYProperty() {
+        return DUMMY;
+    }
+
+    public void setDUMMY(String DUMMY) {
+        this.DUMMY.set(DUMMY);
     }
 }

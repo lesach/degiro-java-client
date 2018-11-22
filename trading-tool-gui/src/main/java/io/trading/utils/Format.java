@@ -22,6 +22,24 @@ public class Format {
     }
 
     /**
+     * Parse a formatted BigDecimal
+     * @param d number
+     * @return String
+     */
+    public static BigDecimal parseBigDecimal(String d) {
+        if (d == null)
+            return null;
+        try {
+            return new BigDecimal(bigDecimalFormat.parse(d).doubleValue());
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
+
+
+
+    /**
      * Return a formatted BigDecimal
      * @param d number
      * @return String

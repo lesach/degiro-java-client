@@ -32,7 +32,7 @@ public class Main extends Application {
             final URL url = getClass().getResource("/fxml/Main.fxml");
             // Loader creation
             final Parent root = FXMLLoader.load(url);
-            primaryStage.setTitle("Hello World");
+            primaryStage.setTitle("Trading Tool");
             final Scene scene = new Scene(root);
             scene.getStylesheets().add("/css/main.css");
             primaryStage.setScene(scene);

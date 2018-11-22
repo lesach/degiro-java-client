@@ -1,7 +1,6 @@
 package io.trading.model;
 
 import cat.indiketa.degiro.model.*;
-import io.trading.controller.MainController;
 import io.trading.provider.ConnectionProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -77,7 +76,8 @@ public class Context {
      * Clear watch list
      */
     public void clearPriceSubscriptions() {
-        connection.clearPriceSubscriptions();;
+        if (connection != null)
+            connection.clearPriceSubscriptions();
     }
 
     /**
@@ -110,7 +110,9 @@ public class Context {
      * @return position list
      */
     public DPortfolioProducts getPortfolio() {
-        return this.connection.getPortfolio();
+        if (connection != null)
+            return this.connection.getPortfolio();
+        return null;
     }
 
     /**
@@ -118,6 +120,29 @@ public class Context {
      * @return orders list
      */
     public List<DOrder> getOrders() {
-        return this.connection.getOrders();
+        if (connection != null)
+            return this.connection.getOrders();
+        return null;
+    }
+
+
+    /**
+     * Return orders confirmation
+     * @return confirmation
+     */
+    public DOrderConfirmation checkOrder(DNewOrder order ) {
+        if (connection != null)
+            return this.connection.checkOrder(order);
+        return null;
+    }
+
+    /**
+     * Valid order
+     * @return confirmation
+     */
+    public DPlacedOrder confirmOrder(DNewOrder order, DOrderConfirmation confirmation) {
+        if (connection != null)
+            return this.connection.confirmOrder(order, confirmation);
+        return null;
     }
 }

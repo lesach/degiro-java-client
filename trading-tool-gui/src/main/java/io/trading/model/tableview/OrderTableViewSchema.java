@@ -12,6 +12,7 @@ public class OrderTableViewSchema {
     private final SimpleDoubleProperty price;
     private final SimpleStringProperty currency;
     private final SimpleLongProperty quantity;
+    private final SimpleStringProperty DUMMY;
 
     /**
      *
@@ -37,6 +38,7 @@ public class OrderTableViewSchema {
         this.price = new SimpleDoubleProperty(price);
         this.currency = new SimpleStringProperty(currency);
         this.quantity = new SimpleLongProperty(quantity);
+        this.DUMMY = new SimpleStringProperty(null);
     }
 
     /**
@@ -149,4 +151,17 @@ public class OrderTableViewSchema {
     public void setId(String id) {
         this.id.set(id);
     }
+
+    public String getDUMMY() {
+        return DUMMY.get();
+    }
+
+    public SimpleStringProperty DUMMYProperty() {
+        return DUMMY;
+    }
+
+    public void setDUMMY(String DUMMY) {
+        this.DUMMY.set(DUMMY);
+    }
+
 }

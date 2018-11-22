@@ -129,4 +129,33 @@ public class ConnectionProvider {
             return null;
         }
     }
+
+
+    /**
+     * Return orders confirmation
+     * @return confirmation
+     */
+    public DOrderConfirmation checkOrder(DNewOrder order ) {
+        try {
+            return this.degiro.checkOrder(order);
+        }
+        catch (Exception e) {
+            logger.error("ERROR in checkOrder", e);
+            return null;
+        }
+    }
+
+    /**
+     * Valid order
+     * @return confirmation
+     */
+    public DPlacedOrder confirmOrder(DNewOrder order, DOrderConfirmation confirmation) {
+        try {
+            return this.degiro.confirmOrder(order, confirmation.getConfirmationId());
+        }
+        catch (Exception e) {
+            logger.error("ERROR in confirmOrder", e);
+            return null;
+        }
+    }
 }

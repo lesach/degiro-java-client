@@ -6,18 +6,18 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.trading.controller.MainController">
+<GridPane minHeight="800.0" minWidth="1024.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.trading.controller.MainController">
    <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
    </columnConstraints>
    <rowConstraints>
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="130.0" minHeight="10.0" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="130.0" minHeight="10.0" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="150.0" minHeight="10.0" vgrow="SOMETIMES" />
       <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
    </rowConstraints>
    <children>
-      <TitledPane collapsible="false" maxHeight="130.0" text="Client">
+      <TitledPane collapsible="false" text="Client">
          <content>
             <TabPane tabClosingPolicy="UNAVAILABLE">
               <tabs>
@@ -128,7 +128,7 @@
             </TabPane>
          </content>
       </TitledPane>
-      <TitledPane collapsible="false" maxHeight="150.0" text="Orders" GridPane.rowIndex="2">
+      <TitledPane collapsible="false" text="Orders" GridPane.rowIndex="2">
          <content>
             <TableView fx:id="tabOrders" prefHeight="200.0" prefWidth="200.0">
               <columns>
@@ -138,11 +138,12 @@
                 <TableColumn fx:id="colOrderLimit" prefWidth="75.0" text="Limit" />
                 <TableColumn fx:id="colOrderQuantity" prefWidth="75.0" text="Quantity" />
                 <TableColumn fx:id="colOrderCurrency" prefWidth="75.0" text="Currency" />
+                  <TableColumn fx:id="colOrderDelete" prefWidth="75.0" text="Delete" />
               </columns>
             </TableView>
          </content>
       </TitledPane>
-      <TitledPane collapsible="false" maxHeight="120.0" text="Positions" GridPane.rowIndex="1">
+      <TitledPane collapsible="false" text="Positions" GridPane.rowIndex="1">
          <content>
             <TableView fx:id="tabPositions">
               <columns>
@@ -156,6 +157,7 @@
                 <TableColumn fx:id="colPositionDailyVariation" prefWidth="75.0" text="Daily Variation" />
                 <TableColumn fx:id="colPositionTotalPL" prefWidth="75.0" text="Total  P&amp;L" />
                 <TableColumn fx:id="colPositionTime" prefWidth="75.0" text="Time" />
+                  <TableColumn fx:id="colPositionSell" prefWidth="75.0" text="Sell" />
               </columns>
             </TableView>
          </content>
@@ -163,9 +165,9 @@
             <Button fx:id="btnPositionsRefresh" mnemonicParsing="false" onAction="#handlePositionsRefreshButtonAction" text="Refresh" />
          </graphic>
       </TitledPane>
-      <TitledPane collapsible="false" prefHeight="200.0" prefWidth="200.0" text="Products" GridPane.rowIndex="3">
+      <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" text="Products" GridPane.rowIndex="3">
          <content>
-            <GridPane>
+            <GridPane minHeight="200.0">
               <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -174,34 +176,36 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <ScrollPane>
-                     <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0">
-                           <children>
-                              <Label contentDisplay="CENTER" text="TURBO CALL" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="5.0" />
-                              <TextField fx:id="txtCallProductSearch" AnchorPane.leftAnchor="60.0" AnchorPane.topAnchor="30.0" />
-                              <Label text="Search" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="35.0" />
-                              <Button fx:id="btnCallProductSearch" mnemonicParsing="false" onAction="#handleCallProductSearchButtonAction" text="Search" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="30.0" />
-                              <Label layoutX="32.0" layoutY="93.0" text="Product" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="70.0" />
-                              <Label fx:id="lblCallProductName" layoutX="42.0" layoutY="103.0" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="70.0" />
-                              <Label fx:id="lblCallProductAsk" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="90.0" />
-                              <Label text="Ask" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="90.0" />
-                              <Label layoutX="10.0" layoutY="10.0" text="Bid" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="110.0" />
-                              <Label fx:id="lblCallProductBid" layoutX="10.0" layoutY="10.0" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="110.0" />
-                              <Label fx:id="lblCallProductTime" layoutX="20.0" layoutY="20.0" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="130.0" />
-                              <Label layoutX="20.0" layoutY="20.0" text="Time" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="130.0" />
-                              <Label layoutX="10.0" layoutY="10.0" text="Last Value" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="90.0" />
-                              <Label fx:id="lblCallProductLastValue" layoutX="10.0" layoutY="10.0" text="..." AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="90.0" />
-                              <Label fx:id="lblCallProductLastTime" layoutX="20.0" layoutY="20.0" text="..." AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="110.0" />
-                              <Label layoutX="20.0" layoutY="20.0" text="Last Time" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="110.0" />
-                           </children>
-                        </AnchorPane>
-                     </content>
-                  </ScrollPane>
+                <AnchorPane>
+                     <children>
+                        <Label contentDisplay="CENTER" text="TURBO CALL" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="5.0" />
+                        <TextField fx:id="txtCallProductSearch" AnchorPane.leftAnchor="60.0" AnchorPane.topAnchor="30.0" />
+                        <Label text="Search" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="35.0" />
+                        <Button fx:id="btnCallProductSearch" mnemonicParsing="false" onAction="#handleCallProductSearchButtonAction" text="Search" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="30.0" />
+                        <Label layoutX="32.0" layoutY="93.0" text="Product" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="70.0" />
+                        <Label fx:id="lblCallProductName" layoutX="42.0" layoutY="103.0" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="70.0" />
+                        <Label fx:id="lblCallProductAsk" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="90.0" />
+                        <Label text="Ask" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="90.0" />
+                        <Label layoutX="10.0" layoutY="10.0" text="Bid" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="110.0" />
+                        <Label fx:id="lblCallProductBid" layoutX="10.0" layoutY="10.0" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="110.0" />
+                        <Label fx:id="lblCallProductTime" layoutX="20.0" layoutY="20.0" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="130.0" />
+                        <Label layoutX="20.0" layoutY="20.0" text="Time" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="130.0" />
+                        <Label layoutX="10.0" layoutY="10.0" text="Last Value" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="90.0" />
+                        <Label fx:id="lblCallProductLastValue" layoutX="10.0" layoutY="10.0" text="..." AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="90.0" />
+                        <Label fx:id="lblCallProductLastTime" layoutX="20.0" layoutY="20.0" text="..." AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="110.0" />
+                        <Label layoutX="20.0" layoutY="20.0" text="Last Time" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="110.0" />
+                        <Button fx:id="btnCallProductBuy" disable="true" mnemonicParsing="false" onAction="#handleCallProductBuyButtonAction" text="Buy" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+                        <TextField fx:id="txtCallProductBuyQuantity" disable="true" layoutX="10.0" layoutY="10.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="70.0" />
+                        <Label layoutX="42.0" layoutY="103.0" text="Quantity" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="5.0" />
+                     </children>
+                  </AnchorPane>
                   <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" />
                </children>
             </GridPane>
          </content>
+         <GridPane.margin>
+            <Insets />
+         </GridPane.margin>
       </TitledPane>
    </children>
 </GridPane>
