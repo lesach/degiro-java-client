@@ -20,5 +20,14 @@ public class AppConfig {
     static public String getDegiroPassword() {
         return env.get("DEGIRO_PASSWORD");
     }
+
+    /**
+     * return Degiro password to connect to API
+     * @return string format
+     */
+    static public String getDegiroPersitentSessionPath() {
+        return env.get("DEGIRO_PERSISTENT_SESSION_PATH");
+    }
+
 }
 

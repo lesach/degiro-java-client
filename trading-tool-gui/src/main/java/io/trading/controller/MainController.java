@@ -1,6 +1,7 @@
 package io.trading.controller;
 
 import cat.indiketa.degiro.model.*;
+import cat.indiketa.degiro.utils.DUtils;
 import com.google.gson.GsonBuilder;
 import io.trading.model.Context;
 import io.trading.model.tableview.OrderTableViewSchema;
@@ -21,6 +22,8 @@ import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
@@ -59,7 +62,8 @@ public class MainController implements Initializable {
     @FXML private Label lblCallProductLastValue;
     @FXML private Label lblCallProductLastTime;
     @FXML private Button btnCallProductBuy;
-    @FXML private TextField txtCallProductBuyQuantity;
+    @FXML private Label lblCallProductBuyQuantity;
+    @FXML private TextField txtCallProductBuyAmount;
 
     // Position Table
     @FXML TableView<PositionTableViewSchema> tabPositions;
@@ -179,27 +183,26 @@ public class MainController implements Initializable {
      * @return true if OK
      */
     private boolean checkCredentials() {
+        return checkEmptyTextField(txtUser) & checkEmptyTextField(txtPassword);
+    }
+
+    /**
+     * Check if a text field is empty
+     * @return true if OK
+     */
+    private boolean checkEmptyTextField(TextField field) {
         boolean result = true;
         // User name
-        String username = txtUser.getText();
-        if (username.isEmpty()) {
-            txtUser.getStyleClass().add("error");
+        String s = field.getText();
+        if (s.isEmpty()) {
+            field.getStyleClass().add("error");
             result = false;
         }
         else
-            txtUser.getStyleClass().remove("error");
-
-        // Password
-        String password = txtPassword.getText();
-        if (password.isEmpty()) {
-            txtPassword.getStyleClass().add("error");
-            result = false;
-        }
-        else
-            txtPassword.getStyleClass().remove("error");
-
+            field.getStyleClass().remove("error");
         return  result;
     }
+
 
     /**
      * Fill Client panel
@@ -292,6 +295,14 @@ public class MainController implements Initializable {
                                         lblCallProductLastValue.setText(Format.formatBigDecimal(price.getLast()));
                                         lblCallProductLastTime.setText(Format.formatDate(price.getLastTime()));
                                         lblCallProductTime.setText(Format.formatDate(new Date()));
+                                        BigDecimal amout = Format.parseBigDecimal(txtCallProductBuyAmount.getText());
+                                        if (amout == null || price.getAsk() == null)
+                                            lblCallProductBuyQuantity.setText("0");
+                                        else {
+                                            long quantity = amout.divide(new BigDecimal(price.getAsk()), RoundingMode.FLOOR).longValueExact();
+                                            lblCallProductBuyQuantity.setText(Long.toString(quantity));
+                                        }
+
                                     }
                             );
                         }
@@ -315,16 +326,7 @@ public class MainController implements Initializable {
      * @return true if OK
      */
     private boolean checkCallProductSearch() {
-        boolean result = true;
-        // Search
-        String search = txtCallProductSearch.getText();
-        if (search.isEmpty()) {
-            txtCallProductSearch.getStyleClass().add("error");
-            result = false;
-        }
-        else
-            txtCallProductSearch.getStyleClass().remove("error");
-        return  result;
+        return checkEmptyTextField(txtCallProductSearch);
     }
 
     /**
@@ -335,8 +337,9 @@ public class MainController implements Initializable {
             lblCallProductName.setText("");
             lblCallProductAsk.setText("");
             lblCallProductBid.setText("");
+            lblCallProductBuyQuantity.setText("0");
             context.clearPriceSubscriptions();
-            txtCallProductBuyQuantity.setDisable(true);
+            txtCallProductBuyAmount.setDisable(true);
             btnCallProductBuy.setDisable(true);
         }
         else {
@@ -344,7 +347,8 @@ public class MainController implements Initializable {
             lblCallProductAsk.setText("");
             lblCallProductBid.setText("");
             context.subscribeToPrice(callProduct.getVwdId());
-            txtCallProductBuyQuantity.setDisable(callProduct.isTradable());
+            lblCallProductBuyQuantity.setText("0");
+            txtCallProductBuyAmount.setDisable(callProduct.isTradable());
             btnCallProductBuy.setDisable(callProduct.isTradable());
         }
     }
@@ -461,7 +465,7 @@ public class MainController implements Initializable {
                         DOrderType.LIMITED,
                         DOrderTime.DAY,
                         callProduct.getId(),
-                        Long.parseLong(txtCallProductBuyQuantity.getText()),
+                        Long.parseLong(lblCallProductBuyQuantity.getText()),
                         Format.parseBigDecimal(lblCallProductAsk.getText()),
                         null);
 

@@ -3,7 +3,9 @@ package io.trading.provider;
 import cat.indiketa.degiro.DeGiro;
 import cat.indiketa.degiro.DeGiroFactory;
 import cat.indiketa.degiro.model.*;
+import cat.indiketa.degiro.session.DPersistentSession;
 import cat.indiketa.degiro.utils.DCredentials;
+import io.trading.config.AppConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +32,7 @@ public class ConnectionProvider {
                 return password;
             }
         };
-        this.degiro = DeGiroFactory.newInstance(creds);
+        this.degiro = DeGiroFactory.newInstance(creds,  new DPersistentSession(AppConfig.getDegiroPersitentSessionPath()));
     }
 
 
@@ -68,7 +70,7 @@ public class ConnectionProvider {
      * Clear watch list
      */
     public void clearPriceSubscriptions() {
-        degiro.clearPriceSubscriptions();;
+        degiro.clearPriceSubscriptions();
     }
 
     /**
