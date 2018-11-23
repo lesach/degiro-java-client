@@ -3,6 +3,7 @@ package io.trading.controller;
 import cat.indiketa.degiro.model.*;
 import cat.indiketa.degiro.utils.DUtils;
 import com.google.gson.GsonBuilder;
+import io.trading.config.AppConfig;
 import io.trading.model.Context;
 import io.trading.model.tableview.OrderTableViewSchema;
 import io.trading.model.tableview.PositionTableViewSchema;
@@ -25,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -127,6 +129,16 @@ public class MainController implements Initializable {
                                     btn.setOnAction(event -> {
                                         PositionTableViewSchema p = getTableView().getItems().get(getIndex());
                                         logger.info("Sell product: " + p.getProduct() + " -> " + Format.formatBigDecimal(p.getPrice()));
+                                        // Generate a new order. Signature:
+                                        DNewOrder order = new DNewOrder(DOrderAction.SELL,
+                                                DOrderType.LIMITED,
+                                                DOrderTime.DAY,
+                                                p.getId(),
+                                                Double.valueOf(p.getQuantity()).longValue(),
+                                                new BigDecimal(p.getBid()),
+                                                null);
+
+                                        sendOrder(order);
                                     });
                                     setGraphic(btn);
                                     setText(null);
@@ -234,38 +246,43 @@ public class MainController implements Initializable {
      */
     @FXML protected void handlePositionsRefreshButtonAction(ActionEvent event) {
         logger.info("Refresh Positions button pressed");
-        FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == 123456L);
-        if (list.isEmpty()) {
-            PositionTableViewSchema s = new PositionTableViewSchema(123456L,
-                    "Product",
-                    "Place",
-                    987.4D,
-                    546L,
-                    "EUR",
-                    987564.54D,
-                    123.74D,
-                    21.4D,
-                    -65.45D,
-                    Format.formatDate(new Date())
-            );
-            positionsData.add(s);
+        if (AppConfig.getTest()) {
+            FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == 123456L);
+            PositionTableViewSchema s;
+            if (list.isEmpty()) {
+                s = new PositionTableViewSchema(123456L,
+                        "Product",
+                        "Place",
+                        987.4D,
+                        546L,
+                        "EUR",
+                        987564.54D,
+                        123.74D,
+                        21.4D,
+                        -65.45D,
+                        Format.formatDate(new Date())
+                );
+                positionsData.add(s);
+            } else {
+                s = list.get(0);
+                s.update(123456L,
+                        "Product",
+                        "Place",
+                        1987.4D,
+                        546L,
+                        "EUR",
+                        64.54D,
+                        123.74D,
+                        21.4D,
+                        -105.45D,
+                        Format.formatDate(new Date())
+                );
+            }
+            // subscribe to price update
+            context.subscribeToPrice(Long.toString(s.getId()));
         }
-        else {
-            PositionTableViewSchema s = list.get(0);
-            s.update(123456L,
-                    "Product",
-                    "Place",
-                    1987.4D,
-                    546L,
-                    "EUR",
-                    64.54D,
-                    123.74D,
-                    21.4D,
-                    -105.45D,
-                    Format.formatDate(new Date())
-            );
-        }
-        //updatePositions();
+        else
+            updatePositions();
     }
 
     /**
@@ -286,6 +303,7 @@ public class MainController implements Initializable {
                     @Override
                     public void priceChanged(DPrice price) {
                         logger.info("Price changed: " + new GsonBuilder().setPrettyPrinting().create().toJson(price));
+
                         if (price.getIssueId().equals(callProduct.getVwdId())) {
                             // Avoid throwing IllegalStateException by running from a non-JavaFX thread.
                             Platform.runLater(
@@ -305,6 +323,14 @@ public class MainController implements Initializable {
 
                                     }
                             );
+                        }
+                        FilteredList<PositionTableViewSchema> positionList = positionsData.filtered(t -> Long.toString(t.getId()).equals(price.getIssueId()));
+                        if (! positionList.isEmpty()) {
+                            positionList.get(0).update(price.getAsk(), price.getBid());
+                        }
+                        FilteredList<OrderTableViewSchema> orderList = ordersData.filtered(t -> t.getId().equals(price.getIssueId()));
+                        if (!orderList.isEmpty()) {
+                            orderList.get(0).update(price.getAsk(), price.getBid());
                         }
                     }
                 });
@@ -348,8 +374,8 @@ public class MainController implements Initializable {
             lblCallProductBid.setText("");
             context.subscribeToPrice(callProduct.getVwdId());
             lblCallProductBuyQuantity.setText("0");
-            txtCallProductBuyAmount.setDisable(callProduct.isTradable());
-            btnCallProductBuy.setDisable(callProduct.isTradable());
+            txtCallProductBuyAmount.setDisable(!callProduct.isTradable());
+            btnCallProductBuy.setDisable(!callProduct.isTradable());
         }
     }
 
@@ -409,6 +435,8 @@ public class MainController implements Initializable {
                         Format.formatDate(p.getLastUpdate())
                 );
             }
+            // subscribe to price update
+            context.subscribeToPrice(Long.toString(s.getId()));
         });
     }
 
@@ -460,22 +488,28 @@ public class MainController implements Initializable {
                 logger.info("Creating Buy order");
                 // Generate a new order. Signature:
                 // public DNewOrder(DOrderAction action, DOrderType orderType, DOrderTime timeType, long productId, long size, BigDecimal limitPrice, BigDecimal stopPrice)
-
-                DNewOrder order = new DNewOrder(DOrderAction.SELL,
-                        DOrderType.LIMITED,
-                        DOrderTime.DAY,
-                        callProduct.getId(),
-                        Long.parseLong(lblCallProductBuyQuantity.getText()),
-                        Format.parseBigDecimal(lblCallProductAsk.getText()),
-                        null);
-
-                DOrderConfirmation confirmation = context.checkOrder(order);
-
-                if (!confirmation.getConfirmationId().isEmpty()) {
-                    DPlacedOrder placed = context.confirmOrder(order, confirmation);
-                    if (placed.getStatus() != 0) {
-                        throw new RuntimeException("Order not placed: " + placed.getStatusText());
-                    }
+                if (AppConfig.getTest()) {
+                    OrderTableViewSchema order = new OrderTableViewSchema(
+                            "Order1",
+                            DOrderAction.SELL.toString(),
+                            callProduct.getName(),
+                            DOrderType.LIMITED.toString(),
+                            Format.parseBigDecimal(lblCallProductAsk.getText()).doubleValue(),
+                            "EUR",
+                            Long.parseLong(lblCallProductBuyQuantity.getText())
+                            );
+                    context.subscribeToPrice(callProduct.getVwdId());
+                    ordersData.add(order);
+                }
+                else {
+                    DNewOrder order = new DNewOrder(DOrderAction.SELL,
+                            DOrderType.LIMITED,
+                            DOrderTime.DAY,
+                            callProduct.getId(),
+                            Long.parseLong(lblCallProductBuyQuantity.getText()),
+                            Format.parseBigDecimal(lblCallProductAsk.getText()),
+                            null);
+                    sendOrder(order);
                 }
             }
             else{
@@ -487,4 +521,19 @@ public class MainController implements Initializable {
         }
     }
 
+
+    /**
+     * Send order
+     * @param order to send
+     */
+    private void sendOrder(DNewOrder order) {
+        DOrderConfirmation confirmation = context.checkOrder(order);
+
+        if (!confirmation.getConfirmationId().isEmpty()) {
+            DPlacedOrder placed = context.confirmOrder(order, confirmation);
+            if (placed.getStatus() != 0) {
+                throw new RuntimeException("Order not placed: " + placed.getStatusText());
+            }
+        }
+    }
 }

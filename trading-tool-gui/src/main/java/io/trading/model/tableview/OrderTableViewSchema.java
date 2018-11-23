@@ -12,6 +12,8 @@ public class OrderTableViewSchema {
     private final SimpleDoubleProperty price;
     private final SimpleStringProperty currency;
     private final SimpleLongProperty quantity;
+    private final SimpleDoubleProperty ask;
+    private final SimpleDoubleProperty bid;
     private final SimpleStringProperty DUMMY;
 
     /**
@@ -38,7 +40,20 @@ public class OrderTableViewSchema {
         this.price = new SimpleDoubleProperty(price);
         this.currency = new SimpleStringProperty(currency);
         this.quantity = new SimpleLongProperty(quantity);
+        this.ask = new SimpleDoubleProperty(0.0d);
+        this.bid = new SimpleDoubleProperty(0.0d);
         this.DUMMY = new SimpleStringProperty(null);
+    }
+
+    /**
+     * Update prices
+     * @param ask
+     * @param bid
+     */
+    public void update(double ask,
+                       double bid) {
+        this.setAsk(ask);
+        this.setBid(bid);
     }
 
     /**
@@ -151,6 +166,31 @@ public class OrderTableViewSchema {
     public void setId(String id) {
         this.id.set(id);
     }
+
+    public double getAsk() {
+        return ask.get();
+    }
+
+    public SimpleDoubleProperty askProperty() {
+        return ask;
+    }
+
+    public void setAsk(double ask) {
+        this.ask.set(ask);
+    }
+
+    public double getBid() {
+        return bid.get();
+    }
+
+    public SimpleDoubleProperty bidProperty() {
+        return bid;
+    }
+
+    public void setBid(double bid) {
+        this.bid.set(bid);
+    }
+
 
     public String getDUMMY() {
         return DUMMY.get();

@@ -29,5 +29,14 @@ public class AppConfig {
         return env.get("DEGIRO_PERSISTENT_SESSION_PATH");
     }
 
+
+    /**
+     * return Test mode
+     * @return boolean Test mode
+     */
+    static public boolean getTest() {
+        return env.get("TEST").toLowerCase().equals("true");
+    }
+
 }
 

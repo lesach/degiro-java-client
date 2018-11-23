@@ -85,7 +85,8 @@ public class Context {
      * @param vwdId Ids list
      */
     public void subscribeToPrice(String vwdId) {
-        connection.subscribeToPrice(vwdId);
+        if (connection != null)
+            connection.subscribeToPrice(vwdId);
     }
 
     /**

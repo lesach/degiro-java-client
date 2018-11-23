@@ -21,6 +21,8 @@ public class PositionTableViewSchema {
     private final SimpleDoubleProperty dailyVariation;
     private final SimpleDoubleProperty totalPL;
     private final SimpleStringProperty time;
+    private final SimpleDoubleProperty ask;
+    private final SimpleDoubleProperty bid;
     private final SimpleStringProperty DUMMY;
 
     /**
@@ -59,6 +61,8 @@ public class PositionTableViewSchema {
         this.dailyVariation = new SimpleDoubleProperty(dailyVariation);
         this.totalPL = new SimpleDoubleProperty(totalPL);
         this.time = new SimpleStringProperty(time);
+        this.ask = new SimpleDoubleProperty(0.0d);
+        this.bid = new SimpleDoubleProperty(0.0d);
         this.DUMMY = new SimpleStringProperty(null);
     }
 
@@ -99,6 +103,17 @@ public class PositionTableViewSchema {
         this.setDailyVariation(dailyVariation);
         this.setTotalPL(totalPL);
         this.setTime(time);
+    }
+
+    /**
+     * Update prices
+     * @param ask
+     * @param bid
+     */
+    public void update(double ask,
+                       double bid) {
+        this.setAsk(ask);
+        this.setBid(bid);
     }
 
     public static Callback<PositionTableViewSchema, Observable[]> extractor() {
@@ -251,6 +266,30 @@ public class PositionTableViewSchema {
     }
 
 
+    public double getAsk() {
+        return ask.get();
+    }
+
+    public SimpleDoubleProperty askProperty() {
+        return ask;
+    }
+
+    public void setAsk(double ask) {
+        this.ask.set(ask);
+    }
+
+    public double getBid() {
+        return bid.get();
+    }
+
+    public SimpleDoubleProperty bidProperty() {
+        return bid;
+    }
+
+    public void setBid(double bid) {
+        this.bid.set(bid);
+    }
+
     public String getDUMMY() {
         return DUMMY.get();
     }
@@ -262,4 +301,5 @@ public class PositionTableViewSchema {
     public void setDUMMY(String DUMMY) {
         this.DUMMY.set(DUMMY);
     }
+
 }
