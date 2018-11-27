@@ -2,14 +2,21 @@ package io.trading.provider;
 
 import cat.indiketa.degiro.DeGiro;
 import cat.indiketa.degiro.DeGiroFactory;
+import cat.indiketa.degiro.engine.Product;
+import cat.indiketa.degiro.exceptions.DeGiroException;
+import cat.indiketa.degiro.log.DLog;
 import cat.indiketa.degiro.model.*;
 import cat.indiketa.degiro.session.DPersistentSession;
 import cat.indiketa.degiro.utils.DCredentials;
+import com.google.common.base.Strings;
 import io.trading.config.AppConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class ConnectionProvider {
     private static final Logger logger = LogManager.getLogger(ConnectionProvider.class);
@@ -160,4 +167,44 @@ public class ConnectionProvider {
             return null;
         }
     }
+
+
+    /**
+     * Remove order
+     * @return confirmation
+     */
+    public DPlacedOrder deleteOrder(String orderId) {
+        try {
+            return this.degiro.deleteOrder(orderId);
+        }
+        catch (Exception e) {
+            logger.error("ERROR in deleteOrder", e);
+            return null;
+        }
+    }
+
+
+    /**
+     * Return vwdIds
+     * @param productIds
+     * @return
+     */
+    private Map<Long, String> getProductVwdIssueId(List<Long> productIds) {
+        HashMap<Long, String> result = new HashMap<>();
+        try {
+            if (!productIds.isEmpty()) {
+                DProductDescriptions descriptions = this.degiro.getProducts(productIds);
+                Map<Long, DProductDescription> data = descriptions.getData();
+                for (Long productId : data.keySet()) {
+                    DProductDescription description = data.get(productId);
+                    result.put(productId, description.getVwdId());
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error("ERROR in getProductVwdIssueId", e);
+        }
+        return result;
+    }
+
 }

@@ -60,4 +60,13 @@ public class Format {
             return "";
         return dateFormat.format(d);
     }
+
+    /**
+     * Return a formatted BigDecimal
+     * @param d number
+     * @return String
+     */
+    public static String formatDate(long d) {
+        return dateFormat.format(new Date(d));
+    }
 }

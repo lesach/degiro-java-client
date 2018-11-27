@@ -1,20 +1,24 @@
 package io.trading.model.tableview;
 
+import javafx.beans.Observable;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.util.Callback;
 
 public class OrderTableViewSchema {
     private final SimpleStringProperty id;
     private final SimpleStringProperty buyOrSell;
     private final SimpleStringProperty product;
     private final SimpleStringProperty orderType;
-    private final SimpleDoubleProperty price;
+    private final SimpleDoubleProperty limit;
     private final SimpleStringProperty currency;
     private final SimpleLongProperty quantity;
     private final SimpleDoubleProperty ask;
     private final SimpleDoubleProperty bid;
     private final SimpleStringProperty DUMMY;
+    private final SimpleBooleanProperty error;
 
     /**
      *
@@ -22,7 +26,7 @@ public class OrderTableViewSchema {
      * @param buyOrSell
      * @param product
      * @param orderType
-     * @param price
+     * @param limit
      * @param currency
      * @param quantity
      */
@@ -30,19 +34,20 @@ public class OrderTableViewSchema {
                                 String buyOrSell,
                                 String product,
                                 String orderType,
-                                double price,
+                                double limit,
                                 String currency,
                                 long quantity) {
         this.id = new SimpleStringProperty(id);
         this.buyOrSell = new SimpleStringProperty(buyOrSell);
         this.product = new SimpleStringProperty(product);
         this.orderType = new SimpleStringProperty(orderType);
-        this.price = new SimpleDoubleProperty(price);
+        this.limit = new SimpleDoubleProperty(limit);
         this.currency = new SimpleStringProperty(currency);
         this.quantity = new SimpleLongProperty(quantity);
         this.ask = new SimpleDoubleProperty(0.0d);
         this.bid = new SimpleDoubleProperty(0.0d);
         this.DUMMY = new SimpleStringProperty(null);
+        this.error = new SimpleBooleanProperty(false);
     }
 
     /**
@@ -62,7 +67,7 @@ public class OrderTableViewSchema {
      * @param buyOrSell
      * @param product
      * @param orderType
-     * @param price
+     * @param limit
      * @param currency
      * @param quantity
      */
@@ -70,18 +75,34 @@ public class OrderTableViewSchema {
                         String buyOrSell,
                         String product,
                         String orderType,
-                        double price,
+                        double limit,
                         String currency,
                         long quantity) {
         this.setId(id);
         this.setBuyOrSell(buyOrSell);
         this.setProduct(product);
         this.setOrderType(orderType);
-        this.setPrice(price);
+        this.setLimit(limit);
         this.setCurrency(currency);
         this.setQuantity(quantity);
     }
 
+
+    /**
+     * Callback to make the GUI able to detect a item update
+     * @return
+     */
+    public static Callback<OrderTableViewSchema, Observable[]> extractor() {
+        return (OrderTableViewSchema p) -> new Observable[]{
+                p.idProperty(),
+                p.buyOrSellProperty(),
+                p.productProperty(),
+                p.orderTypeProperty(),
+                p.limitProperty(),
+                p.currencyProperty(),
+                p.quantityProperty()
+        };
+    }
 
     public String getBuyOrSell() {
         return buyOrSell.get();
@@ -119,16 +140,16 @@ public class OrderTableViewSchema {
         this.orderType.set(orderType);
     }
 
-    public double getPrice() {
-        return price.get();
+    public double getLimit() {
+        return limit.get();
     }
 
-    public SimpleDoubleProperty priceProperty() {
-        return price;
+    public SimpleDoubleProperty limitProperty() {
+        return limit;
     }
 
-    public void setPrice(double price) {
-        this.price.set(price);
+    public void setLimit(double price) {
+        this.limit.set(price);
     }
 
     public String getCurrency() {
@@ -191,7 +212,6 @@ public class OrderTableViewSchema {
         this.bid.set(bid);
     }
 
-
     public String getDUMMY() {
         return DUMMY.get();
     }
@@ -202,6 +222,18 @@ public class OrderTableViewSchema {
 
     public void setDUMMY(String DUMMY) {
         this.DUMMY.set(DUMMY);
+    }
+
+    public boolean isError() {
+        return error.get();
+    }
+
+    public SimpleBooleanProperty errorProperty() {
+        return error;
+    }
+
+    public void setError(boolean error) {
+        this.error.set(error);
     }
 
 }

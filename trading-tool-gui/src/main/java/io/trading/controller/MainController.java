@@ -1,10 +1,10 @@
 package io.trading.controller;
 
 import cat.indiketa.degiro.model.*;
-import cat.indiketa.degiro.utils.DUtils;
 import com.google.gson.GsonBuilder;
 import io.trading.config.AppConfig;
 import io.trading.model.Context;
+import io.trading.model.Product;
 import io.trading.model.tableview.OrderTableViewSchema;
 import io.trading.model.tableview.PositionTableViewSchema;
 import io.trading.utils.Format;
@@ -12,32 +12,38 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.util.Callback;
+import javafx.util.Duration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class MainController implements Initializable {
     private static final Logger logger = LogManager.getLogger(MainController.class);
 
-    private Context context;
-    private DProductDescription callProduct;
-    private final ObservableList<PositionTableViewSchema> positionsData = FXCollections.observableArrayList(PositionTableViewSchema.extractor());
-    private final ObservableList<OrderTableViewSchema> ordersData = FXCollections.observableArrayList();
+    private final Context context = new Context();
+    private Product callProduct;
+    private final Map<Long, Product> products = new HashMap<>();
+    private List<String> subscribedProducts = new ArrayList<>();
+    private ObservableList<PositionTableViewSchema> positionsData;
+    PositionsScheduledService positionsScheduledService;
+
+    private ObservableList<OrderTableViewSchema> ordersData = FXCollections.observableArrayList();
+    OrdersScheduledService ordersScheduledService;
 
     // Credentials pane
     @FXML private TextField txtUser;
@@ -65,6 +71,7 @@ public class MainController implements Initializable {
     @FXML private Label lblCallProductLastTime;
     @FXML private Button btnCallProductBuy;
     @FXML private Label lblCallProductBuyQuantity;
+    @FXML private Label lblCallProductBuyTotal;
     @FXML private TextField txtCallProductBuyAmount;
 
     // Position Table
@@ -95,8 +102,8 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         logger.info("Controller loading...");
-        context = new Context();
         // Positions table
+        // Orders table
         colPositionProduct.setCellValueFactory(new PropertyValueFactory<>("product"));
         colPositionPlace.setCellValueFactory(new PropertyValueFactory<>("place"));
         colPositionQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
@@ -137,8 +144,10 @@ public class MainController implements Initializable {
                                                 Double.valueOf(p.getQuantity()).longValue(),
                                                 new BigDecimal(p.getBid()),
                                                 null);
-
-                                        sendOrder(order);
+                                        if (sendOrder(order))
+                                            p.setError(false);
+                                        else
+                                            p.setError(true);
                                     });
                                     setGraphic(btn);
                                     setText(null);
@@ -148,8 +157,41 @@ public class MainController implements Initializable {
                     }
                 };
         colPositionSell.setCellFactory(positionCellFactory);
+        colPositionProduct.setCellFactory(column -> new TableCell<PositionTableViewSchema, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setText(null);
+                    setStyle("");
+                }
+                else {
+                    setText(item);
+                    PositionTableViewSchema p = getTableView().getItems().get(getIndex());
+                    // Style all dates in March with a different color.
+                    if (p.isError()) {
+                        setTextFill(Color.RED);
+                    } else {
+                        setTextFill(Color.BLACK);
+                    }
+                }
+            }
+        });
 
-        tabPositions.setItems(positionsData);
+
+        positionsScheduledService = new PositionsScheduledService(context);
+        positionsScheduledService.setPeriod(Duration.seconds(30));
+        positionsScheduledService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent t) {
+                logger.info("Positions refreshed: " + t.getSource().getValue());
+                positionsData = (ObservableList<PositionTableViewSchema>) t.getSource().getValue();
+                tabPositions.setItems(positionsData);
+                // subscribe to price update
+                //context.subscribeToPrice(Long.toString(s.getId()));
+            }
+        });
+
         // Orders table
         colOrderBuyOrSell.setCellValueFactory(new PropertyValueFactory<>("buyOrSell"));
         colOrderProduct.setCellValueFactory(new PropertyValueFactory<>("product"));
@@ -175,7 +217,17 @@ public class MainController implements Initializable {
                         } else {
                             btn.setOnAction(event -> {
                                 OrderTableViewSchema o = getTableView().getItems().get(getIndex());
-                                logger.info("Delete order: " + o.getProduct() + " -> " + Format.formatBigDecimal(o.getPrice()));
+                                logger.info("Delete order: " + o.getProduct() + " -> " + Format.formatBigDecimal(o.getLimit()));
+
+                                DPlacedOrder deleted = context.deleteOrder(o.getId()); // orderId obtained in getOrders()
+                                if (deleted.getStatus() != 0) {
+                                    String tmp = o.getProduct();
+                                    o.setProduct("");
+                                    o.setError(true);
+                                    o.setProduct(tmp);
+                                }
+                                else
+                                    o.setError(false);
                             });
                             setGraphic(btn);
                             setText(null);
@@ -185,6 +237,42 @@ public class MainController implements Initializable {
             }
         };
         colOrderDelete.setCellFactory(orderCellFactory);
+        colOrderProduct.setCellFactory(column -> new TableCell<OrderTableViewSchema, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (item == null || empty) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    OrderTableViewSchema o = getTableView().getItems().get(getIndex());
+                    // Style all dates in March with a different color.
+                    if (o.isError()) {
+                        setTextFill(Color.RED);
+                    } else {
+                        setTextFill(Color.BLACK);
+                    }
+                }
+            }
+        });
+
+
+        ordersScheduledService = new OrdersScheduledService(context);
+        ordersScheduledService.setPeriod(Duration.seconds(30));
+        ordersScheduledService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent t) {
+                logger.info("orders refreshed: " + t.getSource().getValue());
+                ordersData = (ObservableList<OrderTableViewSchema>) t.getSource().getValue();
+                tabOrders.setItems(ordersData);
+                // subscribe to price update
+                //context.subscribeToPrice(Long.toString(s.getId()));
+            }
+        });
+
+        
         tabOrders.setItems(ordersData);
         logger.info("Controller is now loaded");
     }
@@ -212,7 +300,7 @@ public class MainController implements Initializable {
         }
         else
             field.getStyleClass().remove("error");
-        return  result;
+        return result;
     }
 
 
@@ -246,7 +334,7 @@ public class MainController implements Initializable {
      */
     @FXML protected void handlePositionsRefreshButtonAction(ActionEvent event) {
         logger.info("Refresh Positions button pressed");
-        if (AppConfig.getTest()) {
+        /*if (AppConfig.getTest()) {
             FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == 123456L);
             PositionTableViewSchema s;
             if (list.isEmpty()) {
@@ -282,7 +370,35 @@ public class MainController implements Initializable {
             context.subscribeToPrice(Long.toString(s.getId()));
         }
         else
-            updatePositions();
+            updatePositions();*/
+    }
+
+    /**
+     * Update displayed prices
+     * @param price
+     */
+    private void updatePrices(DPrice price) {
+        if (callProduct != null) {
+            // Avoid throwing IllegalStateException by running from a non-JavaFX thread.
+            Platform.runLater(
+                    () -> {
+                        lblCallProductAsk.setText(Format.formatBigDecimal(callProduct.getAsk()));
+                        lblCallProductBid.setText(Format.formatBigDecimal(callProduct.getBid()));
+                        lblCallProductLastValue.setText(Format.formatBigDecimal(callProduct.getLast()));
+                        lblCallProductLastTime.setText(Format.formatDate(callProduct.getPriceTime()));
+                        lblCallProductTime.setText(Format.formatDate(new Date()));
+                        computeCallQuantityandTotal();
+                    }
+            );
+        }
+        FilteredList<PositionTableViewSchema> positionList = positionsData.filtered(t -> Long.toString(t.getId()).equals(price.getIssueId()));
+        if (!positionList.isEmpty()) {
+            positionList.get(0).update(price.getAsk(), price.getBid());
+        }
+        FilteredList<OrderTableViewSchema> orderList = ordersData.filtered(t -> t.getId().equals(price.getIssueId()));
+        if (!orderList.isEmpty()) {
+            orderList.get(0).update(price.getAsk(), price.getBid());
+        }
     }
 
     /**
@@ -294,7 +410,6 @@ public class MainController implements Initializable {
         if (checkCredentials()) {
             context.setUsername(txtUser.getText());
             context.setPassword(txtPassword.getText());
-            shpConnected.setFill(Paint.valueOf("#55FF55"));
             if (context.Connect()) {
                 txtUser.getStyleClass().remove("error");
                 txtPassword.getStyleClass().remove("error");
@@ -303,41 +418,18 @@ public class MainController implements Initializable {
                     @Override
                     public void priceChanged(DPrice price) {
                         logger.info("Price changed: " + new GsonBuilder().setPrettyPrinting().create().toJson(price));
-
-                        if (price.getIssueId().equals(callProduct.getVwdId())) {
-                            // Avoid throwing IllegalStateException by running from a non-JavaFX thread.
-                            Platform.runLater(
-                                    () -> {
-                                        lblCallProductAsk.setText(Format.formatBigDecimal(price.getAsk()));
-                                        lblCallProductBid.setText(Format.formatBigDecimal(price.getBid()));
-                                        lblCallProductLastValue.setText(Format.formatBigDecimal(price.getLast()));
-                                        lblCallProductLastTime.setText(Format.formatDate(price.getLastTime()));
-                                        lblCallProductTime.setText(Format.formatDate(new Date()));
-                                        BigDecimal amout = Format.parseBigDecimal(txtCallProductBuyAmount.getText());
-                                        if (amout == null || price.getAsk() == null)
-                                            lblCallProductBuyQuantity.setText("0");
-                                        else {
-                                            long quantity = amout.divide(new BigDecimal(price.getAsk()), RoundingMode.FLOOR).longValueExact();
-                                            lblCallProductBuyQuantity.setText(Long.toString(quantity));
-                                        }
-
-                                    }
-                            );
-                        }
-                        FilteredList<PositionTableViewSchema> positionList = positionsData.filtered(t -> Long.toString(t.getId()).equals(price.getIssueId()));
-                        if (! positionList.isEmpty()) {
-                            positionList.get(0).update(price.getAsk(), price.getBid());
-                        }
-                        FilteredList<OrderTableViewSchema> orderList = ordersData.filtered(t -> t.getId().equals(price.getIssueId()));
-                        if (!orderList.isEmpty()) {
-                            orderList.get(0).update(price.getAsk(), price.getBid());
-                        }
+                        Optional<Product> product = products.values().stream().filter(p -> p.getVwdId().equals(price.getIssueId())).findFirst();
+                        product.ifPresent(p -> p.adopt(price));
+                        updatePrices(price);
                     }
                 });
+                positionsScheduledService.start();
+                shpConnected.setFill(Paint.valueOf("#55FF55"));
             }
             else {
                 txtUser.getStyleClass().add("error");
                 txtPassword.getStyleClass().add("error");
+                shpConnected.setFill(Paint.valueOf("#FF5555"));
             }
             displayPortFolio();
         }
@@ -386,9 +478,11 @@ public class MainController implements Initializable {
     @FXML protected void handleCallProductSearchButtonAction(ActionEvent event) {
         logger.info("Call Product Search button pressed");
         if (checkCallProductSearch()) {
-            List<DProductDescription> products = this.context.searchProducts(txtCallProductSearch.getText());
-            if (products != null && products.size() == 1)
-                callProduct = products.get(0);
+            List<DProductDescription> descriptions = this.context.searchProducts(txtCallProductSearch.getText());
+            if (descriptions != null && descriptions.size() == 1) {
+                mergeDescriptionProducts(descriptions);
+                callProduct = products.get(descriptions.get(0).getId());
+            }
             else
                 callProduct = null;
         }
@@ -396,84 +490,6 @@ public class MainController implements Initializable {
             callProduct = null;
         displayCallProduct();
     }
-
-    /**
-     * Display positionsData
-     */
-    private void updatePositions() {
-        DPortfolioProducts produtcs = this.context.getPortfolio();
-        produtcs.getActive().forEach(p -> {
-            FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == p.getId());
-            PositionTableViewSchema s;
-            if (list.isEmpty()) {
-                s = new PositionTableViewSchema(p.getId(),
-                        p.getProduct(),
-                        p.getExchangeBriefCode(),
-                        p.getPrice().doubleValue(),
-                        p.getContractSize(),
-                        p.getCurrency(),
-                        p.getValue().doubleValue(),
-                        p.getTodayPlBase().doubleValue(),
-                        ((p.getPrice().doubleValue() - p.getClosePrice().doubleValue()) * p.getContractSize()),
-                        p.getPlBase().doubleValue(),
-                        Format.formatDate(p.getLastUpdate())
-                        );
-                positionsData.add(s);
-            }
-            else {
-                s = list.get(0);
-                s.update(p.getId(),
-                        p.getProduct(),
-                        p.getExchangeBriefCode(),
-                        p.getPrice().doubleValue(),
-                        p.getContractSize(),
-                        p.getCurrency(),
-                        p.getValue().doubleValue(),
-                        p.getTodayPlBase().doubleValue(),
-                        ((p.getPrice().doubleValue() - p.getClosePrice().doubleValue()) * p.getContractSize()),
-                        p.getPlBase().doubleValue(),
-                        Format.formatDate(p.getLastUpdate())
-                );
-            }
-            // subscribe to price update
-            context.subscribeToPrice(Long.toString(s.getId()));
-        });
-    }
-
-    /**
-     * Display ordersData
-     */
-    private void updateOrders() {
-        List<DOrder> orders = this.context.getOrders();
-        orders.forEach(o -> {
-            FilteredList<OrderTableViewSchema> list = this.ordersData.filtered(t -> t.getId().equals(o.getId()));
-            OrderTableViewSchema s;
-            if (list.isEmpty()) {
-                s = new OrderTableViewSchema(o.getId(),
-                        o.getBuysell().getStrValue(),
-                        o.getProduct(),
-                        o.getOrderType().getStrValue(),
-                        o.getPrice().doubleValue(),
-                        o.getCurrency(),
-                        o.getQuantity()
-                );
-                ordersData.add(s);
-            }
-            else {
-                s = list.get(0);
-                s.update(o.getId(),
-                        o.getBuysell().getStrValue(),
-                        o.getProduct(),
-                        o.getOrderType().getStrValue(),
-                        o.getPrice().doubleValue(),
-                        o.getCurrency(),
-                        o.getQuantity()
-                );
-            }
-        });
-    }
-
-
 
     /**
      * Create an order to Buy Call Product
@@ -526,14 +542,108 @@ public class MainController implements Initializable {
      * Send order
      * @param order to send
      */
-    private void sendOrder(DNewOrder order) {
-        DOrderConfirmation confirmation = context.checkOrder(order);
+    private boolean sendOrder(DNewOrder order) {
+        try {
+            DOrderConfirmation confirmation = context.checkOrder(order);
 
-        if (!confirmation.getConfirmationId().isEmpty()) {
-            DPlacedOrder placed = context.confirmOrder(order, confirmation);
-            if (placed.getStatus() != 0) {
-                throw new RuntimeException("Order not placed: " + placed.getStatusText());
+            if (!confirmation.getConfirmationId().isEmpty()) {
+                DPlacedOrder placed = context.confirmOrder(order, confirmation);
+                if (placed.getStatus() != 0) {
+                    throw new RuntimeException("Order not placed: " + placed.getStatusText());
+                }
+                return true;
             }
         }
+        catch (Exception e) {
+            logger.error("ERROR in sendOrder", e);
+        }
+        return false;
+    }
+
+
+    /**
+     * Compute Call order
+     */
+    private void computeCallQuantityandTotal() {
+        BigDecimal amount = Format.parseBigDecimal(txtCallProductBuyAmount.getText());
+        BigDecimal price = Format.parseBigDecimal(lblCallProductAsk.getText());
+        if (amount == null || price == null) {
+            lblCallProductBuyQuantity.setText("0");
+            lblCallProductBuyTotal.setText("0");
+        }
+        else {
+            BigDecimal quantity = amount.divide(price, RoundingMode.FLOOR);
+            lblCallProductBuyQuantity.setText(Long.toString(quantity.longValueExact()));
+            lblCallProductBuyTotal.setText(Format.formatBigDecimal(quantity.multiply(price)));
+        }
+    }
+    /**
+     * Compute total amount and quantity
+     * @param event trigger
+     */
+    @FXML protected void handletxtCallProductBuyAmountAction(ActionEvent event) {
+        logger.info("Refresh Positions button pressed");
+
+    }
+
+
+    /**
+     *
+     * @param newProducts
+     * @return
+     */
+    private boolean mergePortfolioProducts(List<DPortfolioProducts.DPortfolioProduct> newProducts) {
+        boolean oneRegistered = false;
+        if (newProducts != null) {
+            for (DPortfolioProducts.DPortfolioProduct product : newProducts) {
+                if (products.containsKey(product.getId())) {
+                    products.get(product.getId()).adopt(product);
+                } else {
+                    registerProduct(product);
+                    oneRegistered = true;
+                }
+            }
+        }
+        return oneRegistered;
+    }
+
+
+    /**
+     *
+     * @param newProducts
+     * @return
+     */
+    private boolean mergeDescriptionProducts(List<DProductDescription> newProducts) {
+        boolean oneRegistered = false;
+        if (newProducts != null) {
+            for (DProductDescription product : newProducts) {
+                if (products.containsKey(product.getId())) {
+                    products.get(product.getId()).adopt(product);
+                } else {
+                    registerProduct(product);
+                    oneRegistered = true;
+                }
+            }
+        }
+        return oneRegistered;
+    }
+    /**
+     *
+     * @param add
+     */
+    private void registerProduct(DPortfolioProducts.DPortfolioProduct add) {
+        Product pro = new Product();
+        pro.adopt(add);
+        products.put(add.getId(), pro);
+    }
+
+    /**
+     *
+     * @param add
+     */
+    private void registerProduct(DProductDescription add) {
+        Product pro = new Product();
+        pro.adopt(add);
+        products.put(add.getId(), pro);
     }
 }

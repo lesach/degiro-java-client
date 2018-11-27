@@ -146,4 +146,14 @@ public class Context {
             return this.connection.confirmOrder(order, confirmation);
         return null;
     }
+
+    /**
+     * Remove order
+     * @return confirmation
+     */
+    public DPlacedOrder deleteOrder(String orderId) {
+        if (connection != null)
+            return this.connection.deleteOrder(orderId);
+        return null;
+    }
 }

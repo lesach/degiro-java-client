@@ -197,8 +197,10 @@
                         <Button fx:id="btnCallProductBuy" disable="true" mnemonicParsing="false" onAction="#handleCallProductBuyButtonAction" text="Buy" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
                         <Label layoutX="42.0" layoutY="103.0" text="Quantity" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="5.0" />
                         <Label text="Amount" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="5.0" />
-                        <TextField fx:id="txtCallProductBuyAmount" disable="true" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="70.0" />
+                        <TextField fx:id="txtCallProductBuyAmount" disable="true" onAction="#handletxtCallProductBuyAmountAction" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="70.0" />
                         <Label fx:id="lblCallProductBuyQuantity" layoutX="52.0" layoutY="113.0" text="..." AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="70.0" />
+                        <Label fx:id="lblCallProductBuyTotal" layoutX="62.0" layoutY="123.0" text="..." AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="320.0" />
+                        <Label layoutX="52.0" layoutY="113.0" text="Total" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="250.0" />
                      </children>
                   </AnchorPane>
                   <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" />

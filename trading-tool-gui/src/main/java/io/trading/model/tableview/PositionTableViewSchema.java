@@ -2,6 +2,7 @@ package io.trading.model.tableview;
 
 
 import javafx.beans.Observable;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -24,6 +25,7 @@ public class PositionTableViewSchema {
     private final SimpleDoubleProperty ask;
     private final SimpleDoubleProperty bid;
     private final SimpleStringProperty DUMMY;
+    private final SimpleBooleanProperty error;
 
     /**
      *
@@ -64,6 +66,7 @@ public class PositionTableViewSchema {
         this.ask = new SimpleDoubleProperty(0.0d);
         this.bid = new SimpleDoubleProperty(0.0d);
         this.DUMMY = new SimpleStringProperty(null);
+        this.error = new SimpleBooleanProperty(false);
     }
 
 
@@ -116,6 +119,10 @@ public class PositionTableViewSchema {
         this.setBid(bid);
     }
 
+    /**
+     * Callback to make the GUI able to detect a item update
+     * @return
+     */
     public static Callback<PositionTableViewSchema, Observable[]> extractor() {
         return (PositionTableViewSchema p) -> new Observable[]{
             p.idProperty(),
@@ -300,6 +307,18 @@ public class PositionTableViewSchema {
 
     public void setDUMMY(String DUMMY) {
         this.DUMMY.set(DUMMY);
+    }
+
+    public boolean isError() {
+        return error.get();
+    }
+
+    public SimpleBooleanProperty errorProperty() {
+        return error;
+    }
+
+    public void setError(boolean error) {
+        this.error.set(error);
     }
 
 }
