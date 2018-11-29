@@ -3,7 +3,9 @@ package io.trading.controller;
 import cat.indiketa.degiro.model.*;
 import com.google.gson.GsonBuilder;
 import io.trading.config.AppConfig;
+import io.trading.display.LongDateStringConverter;
 import io.trading.model.Context;
+import io.trading.model.InputOrder;
 import io.trading.model.Product;
 import io.trading.model.tableview.OrderTableViewSchema;
 import io.trading.model.tableview.PositionTableViewSchema;
@@ -24,6 +26,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import javafx.util.converter.NumberStringConverter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,11 +34,27 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MainController implements Initializable {
     private static final Logger logger = LogManager.getLogger(MainController.class);
 
     private final Context context = new Context();
+    public Product getCallProduct() {
+        return callProduct;
+    }
+    public void setCallProduct(Product callProduct) {
+        if (this.callProduct != null) {
+            bindCallProduct(false);
+        }
+        this.callProduct = callProduct;
+        if (this.callProduct != null) {
+            bindCallProduct(true);
+        }
+        manageSubscription();
+    }
+
+    private InputOrder callOrder = new InputOrder();
     private Product callProduct;
     private final Map<Long, Product> products = new HashMap<>();
     private List<String> subscribedProducts = new ArrayList<>();
@@ -64,6 +83,7 @@ public class MainController implements Initializable {
     @FXML private TextField txtCallProductSearch;
     @FXML private Button btnCallProductSearch;
     @FXML private Label lblCallProductName;
+    @FXML private Label lblCallProductIsin;
     @FXML private Label lblCallProductAsk;
     @FXML private Label lblCallProductBid;
     @FXML private Label lblCallProductTime;
@@ -373,24 +393,13 @@ public class MainController implements Initializable {
             updatePositions();*/
     }
 
+
+
     /**
      * Update displayed prices
      * @param price
      */
     private void updatePrices(DPrice price) {
-        if (callProduct != null) {
-            // Avoid throwing IllegalStateException by running from a non-JavaFX thread.
-            Platform.runLater(
-                    () -> {
-                        lblCallProductAsk.setText(Format.formatBigDecimal(callProduct.getAsk()));
-                        lblCallProductBid.setText(Format.formatBigDecimal(callProduct.getBid()));
-                        lblCallProductLastValue.setText(Format.formatBigDecimal(callProduct.getLast()));
-                        lblCallProductLastTime.setText(Format.formatDate(callProduct.getPriceTime()));
-                        lblCallProductTime.setText(Format.formatDate(new Date()));
-                        computeCallQuantityandTotal();
-                    }
-            );
-        }
         FilteredList<PositionTableViewSchema> positionList = positionsData.filtered(t -> Long.toString(t.getId()).equals(price.getIssueId()));
         if (!positionList.isEmpty()) {
             positionList.get(0).update(price.getAsk(), price.getBid());
@@ -419,8 +428,11 @@ public class MainController implements Initializable {
                     public void priceChanged(DPrice price) {
                         logger.info("Price changed: " + new GsonBuilder().setPrettyPrinting().create().toJson(price));
                         Optional<Product> product = products.values().stream().filter(p -> p.getVwdId().equals(price.getIssueId())).findFirst();
-                        product.ifPresent(p -> p.adopt(price));
-                        updatePrices(price);
+                        Platform.runLater(() -> {
+                            product.ifPresent(p -> p.adopt(price));
+                            updatePrices(price);
+                            computeCallQuantityandTotal();
+                        });
                     }
                 });
                 positionsScheduledService.start();
@@ -450,26 +462,48 @@ public class MainController implements Initializable {
     /**
      * Fill Call panel
      */
-    private void displayCallProduct() {
-        if (callProduct == null) {
-            lblCallProductName.setText("");
-            lblCallProductAsk.setText("");
-            lblCallProductBid.setText("");
-            lblCallProductBuyQuantity.setText("0");
-            context.clearPriceSubscriptions();
-            txtCallProductBuyAmount.setDisable(true);
-            btnCallProductBuy.setDisable(true);
+    private void bindCallProduct(boolean bind) {
+        if (bind) {
+            // Product
+            lblCallProductName.textProperty().bindBidirectional(callProduct.nameProperty());
+            lblCallProductIsin.textProperty().bindBidirectional(callProduct.isinProperty());
+            lblCallProductAsk.textProperty().bindBidirectional(callProduct.askProperty(), new NumberStringConverter());
+            lblCallProductBid.textProperty().bindBidirectional(callProduct.bidProperty(), new NumberStringConverter());
+            lblCallProductLastValue.textProperty().bindBidirectional(callProduct.lastProperty(), new NumberStringConverter());
+            lblCallProductLastTime.textProperty().bindBidirectional(callProduct.priceTimeProperty(), new LongDateStringConverter());
+            btnCallProductBuy.disableProperty().bind(callProduct.tradableProperty().not());
+            txtCallProductBuyAmount.disableProperty().bind(callProduct.tradableProperty().not());
+            lblCallProductTime.textProperty().bindBidirectional(callProduct.priceTimeProperty(), new LongDateStringConverter());
+            // Order
+            txtCallProductBuyAmount.textProperty().bindBidirectional(callOrder.amountProperty(), new NumberStringConverter());
+            callOrder.priceProperty().bind(callProduct.askProperty());
+            lblCallProductBuyQuantity.textProperty().bindBidirectional(callOrder.quantityProperty(), new NumberStringConverter());
+            lblCallProductBuyTotal.textProperty().bindBidirectional(callOrder.totalProperty(), new NumberStringConverter());
         }
         else {
-            lblCallProductName.setText(callProduct.getName() + "(" + callProduct.getSymbol() + " / " + callProduct.getIsin() + ")");
-            lblCallProductAsk.setText("");
-            lblCallProductBid.setText("");
-            context.subscribeToPrice(callProduct.getVwdId());
+            // Product
+            btnCallProductBuy.disableProperty().unbind();
+            txtCallProductBuyAmount.disableProperty().unbind();
+            lblCallProductName.textProperty().unbindBidirectional(callProduct.nameProperty());
+            lblCallProductIsin.textProperty().unbindBidirectional(callProduct.isinProperty());
+            lblCallProductAsk.textProperty().unbindBidirectional(callProduct.askProperty());
+            lblCallProductBid.textProperty().unbindBidirectional(callProduct.bidProperty());
+            lblCallProductLastValue.textProperty().unbindBidirectional(callProduct.lastProperty());
+            lblCallProductLastTime.textProperty().unbindBidirectional(callProduct.priceTimeProperty());
+            lblCallProductTime.textProperty().unbindBidirectional(callProduct.priceTimeProperty());
             lblCallProductBuyQuantity.setText("0");
-            txtCallProductBuyAmount.setDisable(!callProduct.isTradable());
-            btnCallProductBuy.setDisable(!callProduct.isTradable());
+            txtCallProductBuyAmount.setDisable(true);
+            btnCallProductBuy.setDisable(true);
+            // Order
+            callOrder.priceProperty().unbind();
+            Platform.runLater(() -> callOrder.setPrice(0d));
+            txtCallProductBuyAmount.textProperty().unbindBidirectional(callOrder.amountProperty());
+            lblCallProductBuyQuantity.textProperty().unbindBidirectional(callOrder.quantityProperty());
+            lblCallProductBuyTotal.textProperty().unbindBidirectional(callOrder.totalProperty());
+
         }
     }
+
 
     /**
      * Search Call product
@@ -477,18 +511,14 @@ public class MainController implements Initializable {
      */
     @FXML protected void handleCallProductSearchButtonAction(ActionEvent event) {
         logger.info("Call Product Search button pressed");
+        setCallProduct(null);
         if (checkCallProductSearch()) {
             List<DProductDescription> descriptions = this.context.searchProducts(txtCallProductSearch.getText());
             if (descriptions != null && descriptions.size() == 1) {
                 mergeDescriptionProducts(descriptions);
-                callProduct = products.get(descriptions.get(0).getId());
+                setCallProduct(products.get(descriptions.get(0).getId()));
             }
-            else
-                callProduct = null;
         }
-        else
-            callProduct = null;
-        displayCallProduct();
     }
 
     /**
@@ -498,8 +528,8 @@ public class MainController implements Initializable {
     @FXML protected void handleCallProductBuyButtonAction(ActionEvent event) {
         logger.info("Call Product Buy button pressed");
         FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == 123456L);
-        if (this.callProduct != null) {
-            if (this.callProduct.isTradable())
+        if (this.getCallProduct() != null) {
+            if (this.getCallProduct().isTradable())
             {
                 logger.info("Creating Buy order");
                 // Generate a new order. Signature:
@@ -508,20 +538,19 @@ public class MainController implements Initializable {
                     OrderTableViewSchema order = new OrderTableViewSchema(
                             "Order1",
                             DOrderAction.SELL.toString(),
-                            callProduct.getName(),
+                            getCallProduct().getName(),
                             DOrderType.LIMITED.toString(),
                             Format.parseBigDecimal(lblCallProductAsk.getText()).doubleValue(),
                             "EUR",
                             Long.parseLong(lblCallProductBuyQuantity.getText())
                             );
-                    context.subscribeToPrice(callProduct.getVwdId());
                     ordersData.add(order);
                 }
                 else {
                     DNewOrder order = new DNewOrder(DOrderAction.SELL,
                             DOrderType.LIMITED,
                             DOrderTime.DAY,
-                            callProduct.getId(),
+                            getCallProduct().getId(),
                             Long.parseLong(lblCallProductBuyQuantity.getText()),
                             Format.parseBigDecimal(lblCallProductAsk.getText()),
                             null);
@@ -645,5 +674,20 @@ public class MainController implements Initializable {
         Product pro = new Product();
         pro.adopt(add);
         products.put(add.getId(), pro);
+    }
+
+    /**
+     *
+     */
+    private void manageSubscription() {
+        // Build expected list
+        List<String> expected = products.values().stream().map(Product::getVwdId).collect(Collectors.toList());
+        // Add new products
+        subscribedProducts.stream().filter(p -> !expected.contains(p)).forEach(context::unsubscribeToPrice);
+        // Remove products
+        expected.stream().filter(p -> !subscribedProducts.contains(p)).forEach(context::subscribeToPrice);
+        // replace subscribed
+        subscribedProducts.clear();
+        subscribedProducts.addAll(expected);
     }
 }

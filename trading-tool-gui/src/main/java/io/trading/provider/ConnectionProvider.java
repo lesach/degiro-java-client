@@ -39,7 +39,10 @@ public class ConnectionProvider {
                 return password;
             }
         };
-        this.degiro = DeGiroFactory.newInstance(creds,  new DPersistentSession(AppConfig.getDegiroPersitentSessionPath()));
+        if (AppConfig.getDegiroPersitentSessionPath().isEmpty())
+            this.degiro = DeGiroFactory.newInstance(creds);
+        else
+            this.degiro = DeGiroFactory.newInstance(creds,  new DPersistentSession(AppConfig.getDegiroPersitentSessionPath()));
     }
 
 

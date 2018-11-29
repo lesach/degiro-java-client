@@ -178,26 +178,28 @@
                <children>
                 <AnchorPane>
                      <children>
+                        <Label fx:id="lblCallProductIsin" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="90.0" />
+                        <Label text="ISIN" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="90.0" />
                         <Label contentDisplay="CENTER" text="TURBO CALL" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="5.0" />
                         <TextField fx:id="txtCallProductSearch" AnchorPane.leftAnchor="60.0" AnchorPane.topAnchor="30.0" />
                         <Label text="Search" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="35.0" />
                         <Button fx:id="btnCallProductSearch" mnemonicParsing="false" onAction="#handleCallProductSearchButtonAction" text="Search" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="30.0" />
                         <Label layoutX="32.0" layoutY="93.0" text="Product" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="70.0" />
-                        <Label fx:id="lblCallProductName" layoutX="42.0" layoutY="103.0" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="70.0" />
-                        <Label fx:id="lblCallProductAsk" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="90.0" />
-                        <Label text="Ask" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="90.0" />
-                        <Label layoutX="10.0" layoutY="10.0" text="Bid" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="110.0" />
-                        <Label fx:id="lblCallProductBid" layoutX="10.0" layoutY="10.0" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="110.0" />
-                        <Label fx:id="lblCallProductTime" layoutX="20.0" layoutY="20.0" text="..." AnchorPane.leftAnchor="70.0" AnchorPane.topAnchor="130.0" />
-                        <Label layoutX="20.0" layoutY="20.0" text="Time" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="130.0" />
-                        <Label layoutX="10.0" layoutY="10.0" text="Last Value" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="90.0" />
-                        <Label fx:id="lblCallProductLastValue" layoutX="10.0" layoutY="10.0" text="..." AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="90.0" />
-                        <Label fx:id="lblCallProductLastTime" layoutX="20.0" layoutY="20.0" text="..." AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="110.0" />
-                        <Label layoutX="20.0" layoutY="20.0" text="Last Time" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="110.0" />
+                        <Label fx:id="lblCallProductName" layoutX="42.0" layoutY="103.0" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="70.0" />
+                        <Label fx:id="lblCallProductAsk" layoutX="157.0" layoutY="190.0" style="-fx-alignment: center;" styleClass="ask-text" text="..." AnchorPane.leftAnchor="185.0" AnchorPane.topAnchor="190.0" />
+                        <Label layoutX="152.0" layoutY="170.0" text="Ask" AnchorPane.leftAnchor="180.0" AnchorPane.topAnchor="170.0" />
+                        <Label layoutX="242.0" layoutY="170.0" text="Bid" AnchorPane.leftAnchor="242.0" AnchorPane.topAnchor="170.0" />
+                        <Label fx:id="lblCallProductBid" layoutX="247.0" layoutY="190.0" style="-fx-alignment: center;" styleClass="bid-text" text="..." AnchorPane.leftAnchor="247.0" AnchorPane.topAnchor="190.0" />
+                        <Label fx:id="lblCallProductTime" layoutX="5.0" layoutY="149.0" prefHeight="15.0" prefWidth="120.0" style="-fx-alignment: center;" text="YYY/MM/DD HH:MM:SS" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="190.0" />
+                        <Label layoutX="34.0" layoutY="178.0" text="Time" AnchorPane.leftAnchor="45.0" AnchorPane.topAnchor="170.0" />
+                        <Label layoutX="200.0" layoutY="109.0" text="Last Value" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="109.0" />
+                        <Label fx:id="lblCallProductLastValue" layoutX="280.0" layoutY="109.0" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="109.0" />
+                        <Label fx:id="lblCallProductLastTime" layoutX="280.0" layoutY="129.0" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="129.0" />
+                        <Label layoutX="200.0" layoutY="129.0" text="Last Time" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="129.0" />
                         <Button fx:id="btnCallProductBuy" disable="true" mnemonicParsing="false" onAction="#handleCallProductBuyButtonAction" text="Buy" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
                         <Label layoutX="42.0" layoutY="103.0" text="Quantity" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="5.0" />
                         <Label text="Amount" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="5.0" />
-                        <TextField fx:id="txtCallProductBuyAmount" disable="true" onAction="#handletxtCallProductBuyAmountAction" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="70.0" />
+                        <TextField fx:id="txtCallProductBuyAmount" disable="true" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="70.0" />
                         <Label fx:id="lblCallProductBuyQuantity" layoutX="52.0" layoutY="113.0" text="..." AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="70.0" />
                         <Label fx:id="lblCallProductBuyTotal" layoutX="62.0" layoutY="123.0" text="..." AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="320.0" />
                         <Label layoutX="52.0" layoutY="113.0" text="Total" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="250.0" />

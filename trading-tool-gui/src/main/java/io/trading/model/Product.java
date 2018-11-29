@@ -9,6 +9,8 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 
+import java.util.Date;
+
 
 public class Product {
     private final SimpleLongProperty id;
@@ -30,7 +32,20 @@ public class Product {
      * Basic Constructor
      */
     public Product() {
-        this(null,null,null,null,null,null,null,null,null,null,null,null,null,null);
+        this(-1l,
+                "",
+                0d,
+                0d,
+                0d,
+                0l,
+                "",
+                0d,
+                0l,
+                "",
+                "",
+                "",
+                "",
+                false);
     }
 
     /**
@@ -96,9 +111,7 @@ public class Product {
             if (prod.getLast() != null) {
                 setLast(prod.getLast());
             }
-            if (prod.getLastTime() != null) {
-                setPriceTime(prod.getLastTime().getTime());
-            }
+            setPriceTime(new Date().getTime());
         }
     }
 
@@ -113,13 +126,17 @@ public class Product {
             setVwdId(prod.getVwdId());
             setProductTypeId(prod.getProductTypeId().toString());
             setClosePrice(prod.getClosePrice());
-            setClosePriceDate(prod.getClosePriceDate().getTime());
+            setTradable(prod.isTradable());
+            if (prod.getClosePriceDate() != null)
+                setClosePriceDate(prod.getClosePriceDate().getTime());
+            else
+                setClosePriceDate(0l);
         }
     }
 
     /**
      *
-     * @param prod
+     * @param prod to adopt
      */
     public void adopt(DPortfolioProducts.DPortfolioProduct prod){
         if (prod == null) {

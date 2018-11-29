@@ -69,4 +69,18 @@ public class Format {
     public static String formatDate(long d) {
         return dateFormat.format(new Date(d));
     }
+
+    /**
+     * Return a formatted BigDecimal
+     * @param d number
+     * @return String
+     */
+    public static Date parseDate(String d) {
+        try {
+            return dateFormat.parse(d);
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
 }
