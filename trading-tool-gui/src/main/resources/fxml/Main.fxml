@@ -158,12 +158,10 @@
                 <TableColumn fx:id="colPositionTotalPL" prefWidth="75.0" text="Total  P&amp;L" />
                 <TableColumn fx:id="colPositionTime" prefWidth="75.0" text="Time" />
                   <TableColumn fx:id="colPositionSell" prefWidth="75.0" text="Sell" />
+                  <TableColumn fx:id="colPositionStopLoss" prefWidth="75.0" text="Stop Loss" />
               </columns>
             </TableView>
          </content>
-         <graphic>
-            <Button fx:id="btnPositionsRefresh" mnemonicParsing="false" onAction="#handlePositionsRefreshButtonAction" text="Refresh" />
-         </graphic>
       </TitledPane>
       <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" text="Products" GridPane.rowIndex="3">
          <content>

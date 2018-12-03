@@ -38,7 +38,7 @@ public class PositionsScheduledService extends ScheduledService<ObservableList<P
                     PositionTableViewSchema s;
                     if (list.isEmpty()) {
                         s = new PositionTableViewSchema(123456L,
-                                "Product",
+                                "ProductSchema",
                                 "Place",
                                 987.4D,
                                 546L,
@@ -54,7 +54,7 @@ public class PositionsScheduledService extends ScheduledService<ObservableList<P
                     else {
                         s = list.get(0);
                         s.update(123456L,
-                                "Product",
+                                "ProductSchema",
                                 "Place",
                                 1987.4D,
                                 546L,

@@ -2,30 +2,21 @@ package io.trading.model.tableview;
 
 
 import javafx.beans.Observable;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.util.Callback;
 
-import java.beans.PropertyChangeSupport;
-
-public class PositionTableViewSchema {
+public class PositionTableViewSchema extends BasicSchema{
     private final SimpleLongProperty id;
-    private final SimpleStringProperty product;
     private final SimpleStringProperty place;
     private final SimpleDoubleProperty price;
-    private final SimpleDoubleProperty quantity;
-    private final SimpleStringProperty currency;
-    private final SimpleDoubleProperty total;
     private final SimpleDoubleProperty dailyPL;
     private final SimpleDoubleProperty dailyVariation;
     private final SimpleDoubleProperty totalPL;
     private final SimpleStringProperty time;
-    private final SimpleDoubleProperty ask;
-    private final SimpleDoubleProperty bid;
-    private final SimpleStringProperty DUMMY;
-    private final SimpleBooleanProperty error;
+    private final SimpleStringProperty DummySell;
+    private final SimpleStringProperty DummyStopLoss;
 
     /**
      *
@@ -45,28 +36,27 @@ public class PositionTableViewSchema {
                                     String product,
                                     String place,
                                     double price,
-                                    double quantity,
+                                    long quantity,
                                     String currency,
                                     double total,
                                     double dailyPL,
                                     double dailyVariation,
                                     double totalPL,
                                     String time) {
+        super();
+        this.setProductName(product);
+        this.setCurrency(currency);
+        this.setQuantity(quantity);
         this.id = new SimpleLongProperty(id);
-        this.product = new SimpleStringProperty(product);
         this.place = new SimpleStringProperty(place);
         this.price = new SimpleDoubleProperty(price);
-        this.quantity = new SimpleDoubleProperty(quantity);
-        this.currency = new SimpleStringProperty(currency);
-        this.total = new SimpleDoubleProperty(total);
+        this.setTotal(total);
         this.dailyPL = new SimpleDoubleProperty(dailyPL);
         this.dailyVariation = new SimpleDoubleProperty(dailyVariation);
         this.totalPL = new SimpleDoubleProperty(totalPL);
         this.time = new SimpleStringProperty(time);
-        this.ask = new SimpleDoubleProperty(0.0d);
-        this.bid = new SimpleDoubleProperty(0.0d);
-        this.DUMMY = new SimpleStringProperty(null);
-        this.error = new SimpleBooleanProperty(false);
+        this.DummySell = new SimpleStringProperty(null);
+        this.DummyStopLoss = new SimpleStringProperty(null);
     }
 
 
@@ -88,7 +78,7 @@ public class PositionTableViewSchema {
                        String product,
                        String place,
                        double price,
-                       double quantity,
+                       long quantity,
                        String currency,
                        double total,
                        double dailyPL,
@@ -96,7 +86,7 @@ public class PositionTableViewSchema {
                        double totalPL,
                        String time) {
         this.setId(id);
-        this.setProduct(product);
+        this.setProductName(product);
         this.setPlace(place);
         this.setPrice (price);
         this.setQuantity(quantity);
@@ -126,7 +116,7 @@ public class PositionTableViewSchema {
     public static Callback<PositionTableViewSchema, Observable[]> extractor() {
         return (PositionTableViewSchema p) -> new Observable[]{
             p.idProperty(),
-            p.productProperty(),
+            p.productNameProperty(),
             p.placeProperty(),
             p.priceProperty(),
             p.quantityProperty(),
@@ -137,19 +127,6 @@ public class PositionTableViewSchema {
             p.totalPLProperty(),
             p.timeProperty()
         };
-    }
-
-    public String getProduct() {
-        return product.get();
-    }
-
-    public SimpleStringProperty productProperty() {
-        return product;
-    }
-
-    public void setProduct(String product) {
-        this.product.set(product);
-
     }
 
     public String getPlace() {
@@ -174,42 +151,6 @@ public class PositionTableViewSchema {
 
     public void setPrice(double price) {
         this.price.set(price);
-    }
-
-    public double getQuantity() {
-        return quantity.get();
-    }
-
-    public SimpleDoubleProperty quantityProperty() {
-        return quantity;
-    }
-
-    public void setQuantity(double quantity) {
-        this.quantity.set(quantity);
-    }
-
-    public String getCurrency() {
-        return currency.get();
-    }
-
-    public SimpleStringProperty currencyProperty() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency.set(currency);
-    }
-
-    public double getTotal() {
-        return total.get();
-    }
-
-    public SimpleDoubleProperty totalProperty() {
-        return total;
-    }
-
-    public void setTotal(double total) {
-        this.total.set(total);
     }
 
     public double getDailyPL() {
@@ -272,53 +213,28 @@ public class PositionTableViewSchema {
         this.id.set(id);
     }
 
-
-    public double getAsk() {
-        return ask.get();
+    public String getDummySell() {
+        return DummySell.get();
     }
 
-    public SimpleDoubleProperty askProperty() {
-        return ask;
+    public SimpleStringProperty dummySellProperty() {
+        return DummySell;
     }
 
-    public void setAsk(double ask) {
-        this.ask.set(ask);
+    public void setDummySell(String dummySell) {
+        this.DummySell.set(dummySell);
     }
 
-    public double getBid() {
-        return bid.get();
+    public String getDummyStopLoss() {
+        return DummyStopLoss.get();
     }
 
-    public SimpleDoubleProperty bidProperty() {
-        return bid;
+    public SimpleStringProperty dummyStopLossProperty() {
+        return DummyStopLoss;
     }
 
-    public void setBid(double bid) {
-        this.bid.set(bid);
-    }
-
-    public String getDUMMY() {
-        return DUMMY.get();
-    }
-
-    public SimpleStringProperty DUMMYProperty() {
-        return DUMMY;
-    }
-
-    public void setDUMMY(String DUMMY) {
-        this.DUMMY.set(DUMMY);
-    }
-
-    public boolean isError() {
-        return error.get();
-    }
-
-    public SimpleBooleanProperty errorProperty() {
-        return error;
-    }
-
-    public void setError(boolean error) {
-        this.error.set(error);
+    public void setDummyStopLoss(String dummyStopLoss) {
+        this.DummyStopLoss.set(dummyStopLoss);
     }
 
 }

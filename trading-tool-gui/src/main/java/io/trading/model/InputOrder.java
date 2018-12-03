@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
 
 public class InputOrder {
+    private final SimpleLongProperty productId;
     private final SimpleDoubleProperty amount;
     private final SimpleDoubleProperty price;
     private final SimpleDoubleProperty total;
@@ -13,10 +14,11 @@ public class InputOrder {
      *
      */
     public InputOrder() {
+        productId = new SimpleLongProperty(0L);
         amount = new SimpleDoubleProperty(0d);
         price = new SimpleDoubleProperty(0d);
         total = new SimpleDoubleProperty(0d);
-        quantity = new SimpleLongProperty(0l);
+        quantity = new SimpleLongProperty(0L);
     }
 
 
@@ -77,4 +79,17 @@ public class InputOrder {
         else
             this.setQuantity(0L);
     }
+
+    public long getProductId() {
+        return productId.get();
+    }
+
+    public SimpleLongProperty productIdProperty() {
+        return productId;
+    }
+
+    public void setProductId(long productId) {
+        this.productId.set(productId);
+    }
+
 }

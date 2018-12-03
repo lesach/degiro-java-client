@@ -6,12 +6,12 @@ import io.trading.config.AppConfig;
 import io.trading.display.LongDateStringConverter;
 import io.trading.model.Context;
 import io.trading.model.InputOrder;
-import io.trading.model.Product;
+import io.trading.model.tableview.ProductSchema;
 import io.trading.model.tableview.OrderTableViewSchema;
 import io.trading.model.tableview.PositionTableViewSchema;
+import io.trading.provider.SubscriptionProvider;
 import io.trading.utils.Format;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.WorkerStateEvent;
@@ -34,35 +34,37 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MainController implements Initializable {
     private static final Logger logger = LogManager.getLogger(MainController.class);
 
     private final Context context = new Context();
-    public Product getCallProduct() {
-        return callProduct;
+    private final SubscriptionProvider subscriptionProvider = new SubscriptionProvider(context);
+
+    // Call product tab
+    private ProductSchema callProductSchema;
+    private ProductSchema getCallProductSchema() {
+        return callProductSchema;
     }
-    public void setCallProduct(Product callProduct) {
-        if (this.callProduct != null) {
+    private void setCallProductSchema(ProductSchema callProductSchema) {
+        if (this.callProductSchema != null) {
             bindCallProduct(false);
         }
-        this.callProduct = callProduct;
-        if (this.callProduct != null) {
+        this.callProductSchema = callProductSchema;
+        if (this.callProductSchema != null) {
             bindCallProduct(true);
         }
-        manageSubscription();
+        subscriptionProvider.manageSubscription();
     }
-
     private InputOrder callOrder = new InputOrder();
-    private Product callProduct;
-    private final Map<Long, Product> products = new HashMap<>();
-    private List<String> subscribedProducts = new ArrayList<>();
+
+
+    // Table viex
     private ObservableList<PositionTableViewSchema> positionsData;
     PositionsScheduledService positionsScheduledService;
-
-    private ObservableList<OrderTableViewSchema> ordersData = FXCollections.observableArrayList();
+    private ObservableList<OrderTableViewSchema> ordersData;
     OrdersScheduledService ordersScheduledService;
+
 
     // Credentials pane
     @FXML private TextField txtUser;
@@ -71,7 +73,6 @@ public class MainController implements Initializable {
     @FXML private Circle shpConnected;
 
     // Client pane
-    @FXML private Button btnPositionsRefresh;
     @FXML private TextField txtName;
     @FXML private TextField txtTotal;
     @FXML private TextField txtShares;
@@ -107,6 +108,7 @@ public class MainController implements Initializable {
     @FXML TableColumn<PositionTableViewSchema, Double> colPositionTotalPL;
     @FXML TableColumn<PositionTableViewSchema, String> colPositionTime;
     @FXML TableColumn<PositionTableViewSchema, String> colPositionSell;
+    @FXML TableColumn<PositionTableViewSchema, String> colPositionStopLoss;
 
     // Order table
     @FXML TableView<OrderTableViewSchema> tabOrders;
@@ -124,7 +126,7 @@ public class MainController implements Initializable {
         logger.info("Controller loading...");
         // Positions table
         // Orders table
-        colPositionProduct.setCellValueFactory(new PropertyValueFactory<>("product"));
+        colPositionProduct.setCellValueFactory(new PropertyValueFactory<>("productName"));
         colPositionPlace.setCellValueFactory(new PropertyValueFactory<>("place"));
         colPositionQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         colPositionPrice.setCellValueFactory(new PropertyValueFactory<>("price"));
@@ -134,9 +136,9 @@ public class MainController implements Initializable {
         colPositionDailyVariation.setCellValueFactory(new PropertyValueFactory<>("dailyVariation"));
         colPositionTotalPL.setCellValueFactory(new PropertyValueFactory<>("totalPL"));
         colPositionTime.setCellValueFactory(new PropertyValueFactory<>("time"));
-        colPositionSell.setCellValueFactory(new PropertyValueFactory<>("DUMMY"));
+        colPositionSell.setCellValueFactory(new PropertyValueFactory<>("DummySell"));
         Callback<TableColumn<PositionTableViewSchema, String>,
-                TableCell<PositionTableViewSchema, String>> positionCellFactory
+                TableCell<PositionTableViewSchema, String>> positionSellCellFactory
                 = new Callback<TableColumn<PositionTableViewSchema, String>,
                         TableCell<PositionTableViewSchema, String>>() {
 
@@ -155,7 +157,7 @@ public class MainController implements Initializable {
                                 } else {
                                     btn.setOnAction(event -> {
                                         PositionTableViewSchema p = getTableView().getItems().get(getIndex());
-                                        logger.info("Sell product: " + p.getProduct() + " -> " + Format.formatBigDecimal(p.getPrice()));
+                                        logger.info("Sell product: " + p.getProductName() + " -> " + Format.formatBigDecimal(p.getPrice()));
                                         // Generate a new order. Signature:
                                         DNewOrder order = new DNewOrder(DOrderAction.SELL,
                                                 DOrderType.LIMITED,
@@ -176,7 +178,53 @@ public class MainController implements Initializable {
                         };
                     }
                 };
-        colPositionSell.setCellFactory(positionCellFactory);
+        colPositionSell.setCellFactory(positionSellCellFactory);
+
+
+        colPositionSell.setCellValueFactory(new PropertyValueFactory<>("DummyStopLoss"));
+        Callback<TableColumn<PositionTableViewSchema, String>,
+                TableCell<PositionTableViewSchema, String>> positionStopLossCellFactory
+                = new Callback<TableColumn<PositionTableViewSchema, String>,
+                TableCell<PositionTableViewSchema, String>>() {
+
+            @Override
+            public TableCell<PositionTableViewSchema, String> call(final TableColumn<PositionTableViewSchema, String> param) {
+                return new TableCell<PositionTableViewSchema, String>() {
+
+                    final Button btn = new Button("X");
+
+                    @Override
+                    public void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                            setText(null);
+                        } else {
+                            btn.setOnAction(event -> {
+                                PositionTableViewSchema p = getTableView().getItems().get(getIndex());
+                                logger.info("Stop loss on product: " + p.getProductName() + " -> " + Format.formatBigDecimal(p.getPrice()));
+                                // Generate a new order. Signature:
+                                DNewOrder order = new DNewOrder(DOrderAction.SELL,
+                                        DOrderType.LIMITED_STOP_LOSS,
+                                        DOrderTime.DAY,
+                                        p.getId(),
+                                        Double.valueOf(p.getQuantity()).longValue(),
+                                        new BigDecimal(p.getBid()),
+                                        null);
+                                if (sendOrder(order))
+                                    p.setError(false);
+                                else
+                                    p.setError(true);
+                            });
+                            setGraphic(btn);
+                            setText(null);
+                        }
+                    }
+                };
+            }
+        };
+        colPositionStopLoss.setCellFactory(positionStopLossCellFactory);
+
         colPositionProduct.setCellFactory(column -> new TableCell<PositionTableViewSchema, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -207,14 +255,13 @@ public class MainController implements Initializable {
                 logger.info("Positions refreshed: " + t.getSource().getValue());
                 positionsData = (ObservableList<PositionTableViewSchema>) t.getSource().getValue();
                 tabPositions.setItems(positionsData);
-                // subscribe to price update
-                //context.subscribeToPrice(Long.toString(s.getId()));
+                subscriptionProvider.mergeDescriptionProducts(positionsData);
             }
         });
 
         // Orders table
         colOrderBuyOrSell.setCellValueFactory(new PropertyValueFactory<>("buyOrSell"));
-        colOrderProduct.setCellValueFactory(new PropertyValueFactory<>("product"));
+        colOrderProduct.setCellValueFactory(new PropertyValueFactory<>("productName"));
         colOrderType.setCellValueFactory(new PropertyValueFactory<>("orderType"));
         colOrderLimit.setCellValueFactory(new PropertyValueFactory<>("limit"));
         colOrderQuantity.setCellValueFactory(new PropertyValueFactory<>("quantity"));
@@ -237,14 +284,14 @@ public class MainController implements Initializable {
                         } else {
                             btn.setOnAction(event -> {
                                 OrderTableViewSchema o = getTableView().getItems().get(getIndex());
-                                logger.info("Delete order: " + o.getProduct() + " -> " + Format.formatBigDecimal(o.getLimit()));
+                                logger.info("Delete order: " + o.getProductName() + " -> " + Format.formatBigDecimal(o.getLimit()));
 
                                 DPlacedOrder deleted = context.deleteOrder(o.getId()); // orderId obtained in getOrders()
                                 if (deleted.getStatus() != 0) {
-                                    String tmp = o.getProduct();
-                                    o.setProduct("");
+                                    String tmp = o.getProductName();
+                                    o.setProductName("");
                                     o.setError(true);
-                                    o.setProduct(tmp);
+                                    o.setProductName(tmp);
                                 }
                                 else
                                     o.setError(false);
@@ -287,8 +334,7 @@ public class MainController implements Initializable {
                 logger.info("orders refreshed: " + t.getSource().getValue());
                 ordersData = (ObservableList<OrderTableViewSchema>) t.getSource().getValue();
                 tabOrders.setItems(ordersData);
-                // subscribe to price update
-                //context.subscribeToPrice(Long.toString(s.getId()));
+                subscriptionProvider.mergeDescriptionProducts(ordersData);
             }
         });
 
@@ -349,64 +395,21 @@ public class MainController implements Initializable {
 
 
     /**
-     * Connect to API
-     * @param event trigger
-     */
-    @FXML protected void handlePositionsRefreshButtonAction(ActionEvent event) {
-        logger.info("Refresh Positions button pressed");
-        /*if (AppConfig.getTest()) {
-            FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == 123456L);
-            PositionTableViewSchema s;
-            if (list.isEmpty()) {
-                s = new PositionTableViewSchema(123456L,
-                        "Product",
-                        "Place",
-                        987.4D,
-                        546L,
-                        "EUR",
-                        987564.54D,
-                        123.74D,
-                        21.4D,
-                        -65.45D,
-                        Format.formatDate(new Date())
-                );
-                positionsData.add(s);
-            } else {
-                s = list.get(0);
-                s.update(123456L,
-                        "Product",
-                        "Place",
-                        1987.4D,
-                        546L,
-                        "EUR",
-                        64.54D,
-                        123.74D,
-                        21.4D,
-                        -105.45D,
-                        Format.formatDate(new Date())
-                );
-            }
-            // subscribe to price update
-            context.subscribeToPrice(Long.toString(s.getId()));
-        }
-        else
-            updatePositions();*/
-    }
-
-
-
-    /**
      * Update displayed prices
-     * @param price
+     * @param price to update
      */
     private void updatePrices(DPrice price) {
-        FilteredList<PositionTableViewSchema> positionList = positionsData.filtered(t -> Long.toString(t.getId()).equals(price.getIssueId()));
-        if (!positionList.isEmpty()) {
-            positionList.get(0).update(price.getAsk(), price.getBid());
+        if (positionsData != null) {
+            FilteredList<PositionTableViewSchema> positionList = positionsData.filtered(t -> Long.toString(t.getId()).equals(price.getIssueId()));
+            if (!positionList.isEmpty()) {
+                positionList.get(0).update(price.getAsk(), price.getBid());
+            }
         }
-        FilteredList<OrderTableViewSchema> orderList = ordersData.filtered(t -> t.getId().equals(price.getIssueId()));
-        if (!orderList.isEmpty()) {
-            orderList.get(0).update(price.getAsk(), price.getBid());
+        if (ordersData != null) {
+            FilteredList<OrderTableViewSchema> orderList = ordersData.filtered(t -> t.getId().equals(price.getIssueId()));
+            if (!orderList.isEmpty()) {
+                orderList.get(0).update(price.getAsk(), price.getBid());
+            }
         }
     }
 
@@ -427,11 +430,17 @@ public class MainController implements Initializable {
                     @Override
                     public void priceChanged(DPrice price) {
                         logger.info("Price changed: " + new GsonBuilder().setPrettyPrinting().create().toJson(price));
-                        Optional<Product> product = products.values().stream().filter(p -> p.getVwdId().equals(price.getIssueId())).findFirst();
+                        Optional<ProductSchema> product = subscriptionProvider.getProducts().values().stream().filter(p -> p.getVwdId().equals(price.getIssueId())).findFirst();
                         Platform.runLater(() -> {
-                            product.ifPresent(p -> p.adopt(price));
+                            product.ifPresent(p -> {
+                                p.adopt(price);
+                                if (callOrder.getProductId() == p.getProductId())
+                                    callOrder.setPrice(price.getAsk());
+
+                            });
                             updatePrices(price);
-                            computeCallQuantityandTotal();
+
+                            //computeCallQuantityAndTotal();
                         });
                     }
                 });
@@ -464,33 +473,33 @@ public class MainController implements Initializable {
      */
     private void bindCallProduct(boolean bind) {
         if (bind) {
-            // Product
-            lblCallProductName.textProperty().bindBidirectional(callProduct.nameProperty());
-            lblCallProductIsin.textProperty().bindBidirectional(callProduct.isinProperty());
-            lblCallProductAsk.textProperty().bindBidirectional(callProduct.askProperty(), new NumberStringConverter());
-            lblCallProductBid.textProperty().bindBidirectional(callProduct.bidProperty(), new NumberStringConverter());
-            lblCallProductLastValue.textProperty().bindBidirectional(callProduct.lastProperty(), new NumberStringConverter());
-            lblCallProductLastTime.textProperty().bindBidirectional(callProduct.priceTimeProperty(), new LongDateStringConverter());
-            btnCallProductBuy.disableProperty().bind(callProduct.tradableProperty().not());
-            txtCallProductBuyAmount.disableProperty().bind(callProduct.tradableProperty().not());
-            lblCallProductTime.textProperty().bindBidirectional(callProduct.priceTimeProperty(), new LongDateStringConverter());
+            // ProductSchema
+            lblCallProductName.textProperty().bindBidirectional(callProductSchema.productNameProperty());
+            lblCallProductIsin.textProperty().bindBidirectional(callProductSchema.isinProperty());
+            lblCallProductAsk.textProperty().bindBidirectional(callProductSchema.askProperty(), new NumberStringConverter());
+            lblCallProductBid.textProperty().bindBidirectional(callProductSchema.bidProperty(), new NumberStringConverter());
+            lblCallProductLastValue.textProperty().bindBidirectional(callProductSchema.lastProperty(), new NumberStringConverter());
+            lblCallProductLastTime.textProperty().bindBidirectional(callProductSchema.priceTimeProperty(), new LongDateStringConverter());
+            btnCallProductBuy.disableProperty().bind(callProductSchema.tradableProperty().not());
+            txtCallProductBuyAmount.disableProperty().bind(callProductSchema.tradableProperty().not());
+            lblCallProductTime.textProperty().bindBidirectional(callProductSchema.priceTimeProperty(), new LongDateStringConverter());
             // Order
             txtCallProductBuyAmount.textProperty().bindBidirectional(callOrder.amountProperty(), new NumberStringConverter());
-            callOrder.priceProperty().bind(callProduct.askProperty());
+            callOrder.priceProperty().bind(callProductSchema.askProperty());
             lblCallProductBuyQuantity.textProperty().bindBidirectional(callOrder.quantityProperty(), new NumberStringConverter());
             lblCallProductBuyTotal.textProperty().bindBidirectional(callOrder.totalProperty(), new NumberStringConverter());
         }
         else {
-            // Product
+            // ProductSchema
             btnCallProductBuy.disableProperty().unbind();
             txtCallProductBuyAmount.disableProperty().unbind();
-            lblCallProductName.textProperty().unbindBidirectional(callProduct.nameProperty());
-            lblCallProductIsin.textProperty().unbindBidirectional(callProduct.isinProperty());
-            lblCallProductAsk.textProperty().unbindBidirectional(callProduct.askProperty());
-            lblCallProductBid.textProperty().unbindBidirectional(callProduct.bidProperty());
-            lblCallProductLastValue.textProperty().unbindBidirectional(callProduct.lastProperty());
-            lblCallProductLastTime.textProperty().unbindBidirectional(callProduct.priceTimeProperty());
-            lblCallProductTime.textProperty().unbindBidirectional(callProduct.priceTimeProperty());
+            lblCallProductName.textProperty().unbindBidirectional(callProductSchema.productNameProperty());
+            lblCallProductIsin.textProperty().unbindBidirectional(callProductSchema.isinProperty());
+            lblCallProductAsk.textProperty().unbindBidirectional(callProductSchema.askProperty());
+            lblCallProductBid.textProperty().unbindBidirectional(callProductSchema.bidProperty());
+            lblCallProductLastValue.textProperty().unbindBidirectional(callProductSchema.lastProperty());
+            lblCallProductLastTime.textProperty().unbindBidirectional(callProductSchema.priceTimeProperty());
+            lblCallProductTime.textProperty().unbindBidirectional(callProductSchema.priceTimeProperty());
             lblCallProductBuyQuantity.setText("0");
             txtCallProductBuyAmount.setDisable(true);
             btnCallProductBuy.setDisable(true);
@@ -500,7 +509,6 @@ public class MainController implements Initializable {
             txtCallProductBuyAmount.textProperty().unbindBidirectional(callOrder.amountProperty());
             lblCallProductBuyQuantity.textProperty().unbindBidirectional(callOrder.quantityProperty());
             lblCallProductBuyTotal.textProperty().unbindBidirectional(callOrder.totalProperty());
-
         }
     }
 
@@ -510,26 +518,26 @@ public class MainController implements Initializable {
      * @param event trigger
      */
     @FXML protected void handleCallProductSearchButtonAction(ActionEvent event) {
-        logger.info("Call Product Search button pressed");
-        setCallProduct(null);
+        logger.info("Call ProductSchema Search button pressed");
+        setCallProductSchema(null);
         if (checkCallProductSearch()) {
             List<DProductDescription> descriptions = this.context.searchProducts(txtCallProductSearch.getText());
             if (descriptions != null && descriptions.size() == 1) {
-                mergeDescriptionProducts(descriptions);
-                setCallProduct(products.get(descriptions.get(0).getId()));
+                subscriptionProvider.mergeDescriptionProducts(descriptions);
+                setCallProductSchema(subscriptionProvider.getProducts().get(descriptions.get(0).getId()));
             }
         }
     }
 
     /**
-     * Create an order to Buy Call Product
+     * Create an order to Buy Call ProductSchema
      * @param event trigger
      */
     @FXML protected void handleCallProductBuyButtonAction(ActionEvent event) {
-        logger.info("Call Product Buy button pressed");
+        logger.info("Call ProductSchema Buy button pressed");
         FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == 123456L);
-        if (this.getCallProduct() != null) {
-            if (this.getCallProduct().isTradable())
+        if (this.getCallProductSchema() != null) {
+            if (this.getCallProductSchema().isTradable())
             {
                 logger.info("Creating Buy order");
                 // Generate a new order. Signature:
@@ -538,7 +546,7 @@ public class MainController implements Initializable {
                     OrderTableViewSchema order = new OrderTableViewSchema(
                             "Order1",
                             DOrderAction.SELL.toString(),
-                            getCallProduct().getName(),
+                            getCallProductSchema().getProductName(),
                             DOrderType.LIMITED.toString(),
                             Format.parseBigDecimal(lblCallProductAsk.getText()).doubleValue(),
                             "EUR",
@@ -550,7 +558,7 @@ public class MainController implements Initializable {
                     DNewOrder order = new DNewOrder(DOrderAction.SELL,
                             DOrderType.LIMITED,
                             DOrderTime.DAY,
-                            getCallProduct().getId(),
+                            getCallProductSchema().getProductId(),
                             Long.parseLong(lblCallProductBuyQuantity.getText()),
                             Format.parseBigDecimal(lblCallProductAsk.getText()),
                             null);
@@ -593,7 +601,7 @@ public class MainController implements Initializable {
     /**
      * Compute Call order
      */
-    private void computeCallQuantityandTotal() {
+    private void computeCallQuantityAndTotal() {
         BigDecimal amount = Format.parseBigDecimal(txtCallProductBuyAmount.getText());
         BigDecimal price = Format.parseBigDecimal(lblCallProductAsk.getText());
         if (amount == null || price == null) {
@@ -606,88 +614,14 @@ public class MainController implements Initializable {
             lblCallProductBuyTotal.setText(Format.formatBigDecimal(quantity.multiply(price)));
         }
     }
+
     /**
      * Compute total amount and quantity
      * @param event trigger
      */
     @FXML protected void handletxtCallProductBuyAmountAction(ActionEvent event) {
-        logger.info("Refresh Positions button pressed");
+        logger.info("Refresh price while modifying amount");
 
     }
 
-
-    /**
-     *
-     * @param newProducts
-     * @return
-     */
-    private boolean mergePortfolioProducts(List<DPortfolioProducts.DPortfolioProduct> newProducts) {
-        boolean oneRegistered = false;
-        if (newProducts != null) {
-            for (DPortfolioProducts.DPortfolioProduct product : newProducts) {
-                if (products.containsKey(product.getId())) {
-                    products.get(product.getId()).adopt(product);
-                } else {
-                    registerProduct(product);
-                    oneRegistered = true;
-                }
-            }
-        }
-        return oneRegistered;
-    }
-
-
-    /**
-     *
-     * @param newProducts
-     * @return
-     */
-    private boolean mergeDescriptionProducts(List<DProductDescription> newProducts) {
-        boolean oneRegistered = false;
-        if (newProducts != null) {
-            for (DProductDescription product : newProducts) {
-                if (products.containsKey(product.getId())) {
-                    products.get(product.getId()).adopt(product);
-                } else {
-                    registerProduct(product);
-                    oneRegistered = true;
-                }
-            }
-        }
-        return oneRegistered;
-    }
-    /**
-     *
-     * @param add
-     */
-    private void registerProduct(DPortfolioProducts.DPortfolioProduct add) {
-        Product pro = new Product();
-        pro.adopt(add);
-        products.put(add.getId(), pro);
-    }
-
-    /**
-     *
-     * @param add
-     */
-    private void registerProduct(DProductDescription add) {
-        Product pro = new Product();
-        pro.adopt(add);
-        products.put(add.getId(), pro);
-    }
-
-    /**
-     *
-     */
-    private void manageSubscription() {
-        // Build expected list
-        List<String> expected = products.values().stream().map(Product::getVwdId).collect(Collectors.toList());
-        // Add new products
-        subscribedProducts.stream().filter(p -> !expected.contains(p)).forEach(context::unsubscribeToPrice);
-        // Remove products
-        expected.stream().filter(p -> !subscribedProducts.contains(p)).forEach(context::subscribeToPrice);
-        // replace subscribed
-        subscribedProducts.clear();
-        subscribedProducts.addAll(expected);
-    }
 }

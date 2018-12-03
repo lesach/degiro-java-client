@@ -1,4 +1,4 @@
-package io.trading.model;
+package io.trading.model.tableview;
 
 import cat.indiketa.degiro.model.DPortfolioProducts;
 import cat.indiketa.degiro.model.DPrice;
@@ -12,13 +12,17 @@ import javafx.beans.property.SimpleStringProperty;
 import java.util.Date;
 
 
-public class Product {
-    private final SimpleLongProperty id;
-    private final SimpleStringProperty name;
-    private final SimpleDoubleProperty bid;
+public class ProductSchema {
+    private final SimpleLongProperty productId;
+    private final SimpleStringProperty productName;
+    private final SimpleStringProperty currency;
+    // Direct
     private final SimpleDoubleProperty ask;
-    private final SimpleDoubleProperty last;
+    private final SimpleDoubleProperty bid;
     private final SimpleLongProperty priceTime;
+    // Last
+    private final SimpleDoubleProperty last;
+    private final SimpleLongProperty lastTime;
     private final SimpleStringProperty vwdId;
     private final SimpleDoubleProperty closePrice;
     private final SimpleLongProperty closePriceDate;
@@ -31,11 +35,12 @@ public class Product {
     /**
      * Basic Constructor
      */
-    public Product() {
+    public ProductSchema() {
         this(-1l,
                 "",
                 0d,
                 0d,
+                0l,
                 0d,
                 0l,
                 "",
@@ -54,8 +59,9 @@ public class Product {
      * @param name
      * @param bid
      * @param ask
-     * @param last
      * @param priceTime
+     * @param last*
+     * @param lastTime
      * @param vwdId
      * @param closePrice
      * @param closePriceDate
@@ -65,26 +71,28 @@ public class Product {
      * @param isin
      * @param tradable
      */
-    public Product(Long id,
-                   String name,
-                   Double bid,
-                   Double ask,
-                   Double last,
-                   Long priceTime,
-                   String vwdId,
-                   Double closePrice,
-                   Long closePriceDate,
-                   String productTypeId,
-                   String currency,
-                   String symbol,
-                   String isin,
-                   Boolean tradable) {
-        this.id = new SimpleLongProperty(id);
-        this.name = new SimpleStringProperty(name);
+    public ProductSchema(Long id,
+                         String name,
+                         Double bid,
+                         Double ask,
+                         Long priceTime,
+                         Double last,
+                         Long lastTime,
+                         String vwdId,
+                         Double closePrice,
+                         Long closePriceDate,
+                         String productTypeId,
+                         String currency,
+                         String symbol,
+                         String isin,
+                         Boolean tradable) {
+        this.productId = new SimpleLongProperty(id);
+        this.productName = new SimpleStringProperty(name);
         this.bid = new SimpleDoubleProperty(bid);
         this.ask = new SimpleDoubleProperty(ask);
-        this.last = new SimpleDoubleProperty(last);
         this.priceTime = new SimpleLongProperty(priceTime);
+        this.last = new SimpleDoubleProperty(last);
+        this.lastTime = new SimpleLongProperty(lastTime);
         this.vwdId = new SimpleStringProperty(vwdId);
         this.closePrice = new SimpleDoubleProperty(closePrice);
         this.closePriceDate = new SimpleLongProperty(closePriceDate);
@@ -122,7 +130,7 @@ public class Product {
      */
     public void adopt(DProductDescription prod) {
         if (prod != null) {
-            setName(prod.getName());
+            setProductName(prod.getName());
             setVwdId(prod.getVwdId());
             setProductTypeId(prod.getProductTypeId().toString());
             setClosePrice(prod.getClosePrice());
@@ -142,9 +150,9 @@ public class Product {
         if (prod == null) {
             return;
         }
-        setId(prod.getId());
-        if (Strings.isNullOrEmpty(getName())) {
-            setName(prod.getProduct());
+        setProductId(prod.getId());
+        if (Strings.isNullOrEmpty(getProductName())) {
+            setProductName(prod.getProduct());
         }
         setCurrency(prod.getCurrency());
         if (prod.getPrice() != null) {
@@ -153,33 +161,48 @@ public class Product {
         }
 
         if (prod.getLastUpdate() != null) {
-            setPriceTime(prod.getLastUpdate().getTime());
+            setLastTime(prod.getLastUpdate().getTime());
         }
     }
 
 
-    public long getId() {
-        return id.get();
+    /**
+     *
+     * @param basic to adopt
+     */
+    public void adopt(BasicSchema basic){
+        if (basic == null)
+            return;
+        setProductId(basic.getProductId());
+        if (Strings.isNullOrEmpty(getProductName())) {
+            setProductName(basic.getProductName());
+        }
+        setCurrency(basic.getCurrency());
     }
 
-    public SimpleLongProperty idProperty() {
-        return id;
+
+    public long getProductId() {
+        return productId.get();
     }
 
-    public void setId(long id) {
-        this.id.set(id);
+    public SimpleLongProperty productIdProperty() {
+        return productId;
     }
 
-    public String getName() {
-        return name.get();
+    public void setProductId(long id) {
+        this.productId.set(id);
     }
 
-    public SimpleStringProperty nameProperty() {
-        return name;
+    public String getProductName() {
+        return productName.get();
     }
 
-    public void setName(String name) {
-        this.name.set(name);
+    public SimpleStringProperty productNameProperty() {
+        return productName;
+    }
+
+    public void setProductName(String name) {
+        this.productName.set(name);
     }
 
     public double getBid() {
@@ -217,6 +240,20 @@ public class Product {
     public void setLast(double last) {
         this.last.set(last);
     }
+
+
+    public long getLastTime() {
+        return lastTime.get();
+    }
+
+    public SimpleLongProperty lastTimeProperty() {
+        return lastTime;
+    }
+
+    public void setLastTime(long lastTime) {
+        this.lastTime.set(lastTime);
+    }
+
 
     public long getPriceTime() {
         return priceTime.get();
@@ -267,7 +304,6 @@ public class Product {
         this.closePriceDate.set(closePriceDate);
     }
 
-
     public String getProductTypeId() {
         return productTypeId.get();
     }
@@ -280,7 +316,6 @@ public class Product {
         this.productTypeId.set(productTypeId);
     }
 
-
     public String getCurrency() {
         return currency.get();
     }
@@ -292,8 +327,6 @@ public class Product {
     public void setCurrency(String currency) {
         this.currency.set(currency);
     }
-
-    private final SimpleStringProperty currency;
 
     public String getSymbol() {
         return symbol.get();

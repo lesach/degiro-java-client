@@ -38,7 +38,7 @@ public class OrdersScheduledService extends ScheduledService<ObservableList<Orde
                     if (list.isEmpty()) {
                         s = new OrderTableViewSchema("123456Id",
                                 "S",
-                                "Product",
+                                "ProductSchema",
                                 "LIMIT",
                                 15.65d,
                                 "EUR",
@@ -50,7 +50,7 @@ public class OrdersScheduledService extends ScheduledService<ObservableList<Orde
                         s = list.get(0);
                         s.update("123456Id",
                                 "B",
-                                "Product",
+                                "ProductSchema",
                                 "LIMIT",
                                 12.45d,
                                 "EUR",

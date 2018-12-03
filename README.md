@@ -64,11 +64,11 @@ DTransactions transactions = degiro.getTransactions(c, c2);
 // Search products by text, signature:
 // DProductSearch searchProducts(String text, DProductType type, int limit, int offset);
 DProductSearch ps = degiro.searchProducts("telepizza", DProductType.ALL, 10, 0);
-for (DProduct product : ps.getProducts()) {
-    System.out.println(product.getId() + " " + product.getName());
+for (DProduct productName : ps.getProducts()) {
+    System.out.println(productName.getId() + " " + productName.getName());
 }
 
-// Get product info by id, signature:
+// Get productName info by id, signature:
 // DProducts getProducts(List<Long> productIds);
 List<Long> productIds = new ArrayList<>();
 productIds.add(1482366L); // productId obtained in (orders, portfolio, transactions, searchProducts....)
@@ -81,7 +81,7 @@ for (DProductDescription value : products.getData().values()) {
 
 ```
 
-### Subscribe to product price updates
+### Subscribe to productName price updates
 
 ```java
 
@@ -95,7 +95,7 @@ degiro.setPriceListener(new DPriceListener() {
 
 // Create a vwdIssueId list. Note that vwdIssueId is NOT a productId (vwdIssueId is a DProduct field).
 List<Long> vwdIssueIds = new ArrayList<>(1);
-vwdIssueIds.add(280099308L); // Example product vwdIssueId
+vwdIssueIds.add(280099308L); // Example productName vwdIssueId
 degiro.subscribeToPrice(vwdIssueIds); // Callable multiple times with different products. 
 
 // You need some type of control loop, background thread, etc... to prevent JVM termination (out of this scope)
