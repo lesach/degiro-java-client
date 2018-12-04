@@ -338,8 +338,18 @@ public class MainController implements Initializable {
             }
         });
 
-        
         tabOrders.setItems(ordersData);
+
+        // Test onChange
+        txtCallProductBuyAmount.textProperty().addListener((observable, oldValue, newValue) -> {
+            logger.info("Call order amount changed from " + oldValue + " to " + newValue);
+
+        });
+
+        // Initialize credentials
+        txtUser.setText(AppConfig.getDegiroUserName());
+        txtPassword.setText(AppConfig.getDegiroPassword());
+
         logger.info("Controller is now loaded");
     }
 
@@ -434,13 +444,10 @@ public class MainController implements Initializable {
                         Platform.runLater(() -> {
                             product.ifPresent(p -> {
                                 p.adopt(price);
-                                if (callOrder.getProductId() == p.getProductId())
-                                    callOrder.setPrice(price.getAsk());
-
+                                //if (callOrder.getProductId() == p.getProductId())
+                                    //callOrder.setPrice(price.getAsk());
                             });
                             updatePrices(price);
-
-                            //computeCallQuantityAndTotal();
                         });
                     }
                 });
@@ -486,8 +493,8 @@ public class MainController implements Initializable {
             // Order
             txtCallProductBuyAmount.textProperty().bindBidirectional(callOrder.amountProperty(), new NumberStringConverter());
             callOrder.priceProperty().bind(callProductSchema.askProperty());
-            lblCallProductBuyQuantity.textProperty().bindBidirectional(callOrder.quantityProperty(), new NumberStringConverter());
-            lblCallProductBuyTotal.textProperty().bindBidirectional(callOrder.totalProperty(), new NumberStringConverter());
+            lblCallProductBuyQuantity.textProperty().bind(callOrder.quantityProperty().asString());
+            lblCallProductBuyTotal.textProperty().bind(callOrder.totalProperty().asString());
         }
         else {
             // ProductSchema
@@ -520,11 +527,13 @@ public class MainController implements Initializable {
     @FXML protected void handleCallProductSearchButtonAction(ActionEvent event) {
         logger.info("Call ProductSchema Search button pressed");
         setCallProductSchema(null);
+        callOrder.setProductId(0L);
         if (checkCallProductSearch()) {
             List<DProductDescription> descriptions = this.context.searchProducts(txtCallProductSearch.getText());
             if (descriptions != null && descriptions.size() == 1) {
                 subscriptionProvider.mergeDescriptionProducts(descriptions);
                 setCallProductSchema(subscriptionProvider.getProducts().get(descriptions.get(0).getId()));
+                callOrder.setProductId(descriptions.get(0).getId());
             }
         }
     }
@@ -614,14 +623,4 @@ public class MainController implements Initializable {
             lblCallProductBuyTotal.setText(Format.formatBigDecimal(quantity.multiply(price)));
         }
     }
-
-    /**
-     * Compute total amount and quantity
-     * @param event trigger
-     */
-    @FXML protected void handletxtCallProductBuyAmountAction(ActionEvent event) {
-        logger.info("Refresh price while modifying amount");
-
-    }
-
 }

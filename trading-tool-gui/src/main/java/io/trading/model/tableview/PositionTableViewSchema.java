@@ -44,6 +44,7 @@ public class PositionTableViewSchema extends BasicSchema{
                                     double totalPL,
                                     String time) {
         super();
+        this.setProductId(id);
         this.setProductName(product);
         this.setCurrency(currency);
         this.setQuantity(quantity);

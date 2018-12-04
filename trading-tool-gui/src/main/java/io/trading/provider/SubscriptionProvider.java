@@ -5,8 +5,6 @@ import cat.indiketa.degiro.model.DProductDescription;
 import io.trading.model.Context;
 import io.trading.model.tableview.ProductSchema;
 import io.trading.model.tableview.BasicSchema;
-import io.trading.model.tableview.OrderTableViewSchema;
-import io.trading.model.tableview.PositionTableViewSchema;
 import javafx.collections.ObservableList;
 
 import java.util.ArrayList;
@@ -130,12 +128,12 @@ public class SubscriptionProvider {
         // Build expected list
         List<String> expected = products.values().stream().map(ProductSchema::getVwdId).collect(Collectors.toList());
         // Add new products
-        subscribedProducts.stream().filter(p -> !expected.contains(p)).forEach(context::unsubscribeToPrice);
+        subscribedProducts.stream().filter(p -> !expected.contains(p) && !p.isEmpty()).forEach(context::unsubscribeToPrice);
         // Remove products
-        expected.stream().filter(p -> !subscribedProducts.contains(p)).forEach(context::subscribeToPrice);
+        expected.stream().filter(p -> !subscribedProducts.contains(p) && !p.isEmpty()).forEach(context::subscribeToPrice);
         // replace subscribed
         subscribedProducts.clear();
-        subscribedProducts.addAll(expected);
+        subscribedProducts.addAll(expected.stream().filter(p ->  !p.isEmpty()).collect(Collectors.toList()));
     }
 
     /**

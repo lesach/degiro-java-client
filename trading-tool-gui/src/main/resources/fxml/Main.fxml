@@ -184,11 +184,11 @@
                         <Button fx:id="btnCallProductSearch" mnemonicParsing="false" onAction="#handleCallProductSearchButtonAction" text="Search" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="30.0" />
                         <Label layoutX="32.0" layoutY="93.0" text="Product" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="70.0" />
                         <Label fx:id="lblCallProductName" layoutX="42.0" layoutY="103.0" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="70.0" />
-                        <Label fx:id="lblCallProductAsk" layoutX="157.0" layoutY="190.0" style="-fx-alignment: center;" styleClass="ask-text" text="..." AnchorPane.leftAnchor="185.0" AnchorPane.topAnchor="190.0" />
-                        <Label layoutX="152.0" layoutY="170.0" text="Ask" AnchorPane.leftAnchor="180.0" AnchorPane.topAnchor="170.0" />
-                        <Label layoutX="242.0" layoutY="170.0" text="Bid" AnchorPane.leftAnchor="242.0" AnchorPane.topAnchor="170.0" />
-                        <Label fx:id="lblCallProductBid" layoutX="247.0" layoutY="190.0" style="-fx-alignment: center;" styleClass="bid-text" text="..." AnchorPane.leftAnchor="247.0" AnchorPane.topAnchor="190.0" />
-                        <Label fx:id="lblCallProductTime" layoutX="5.0" layoutY="149.0" prefHeight="15.0" prefWidth="120.0" style="-fx-alignment: center;" text="YYY/MM/DD HH:MM:SS" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="190.0" />
+                        <Label fx:id="lblCallProductAsk" layoutX="197.0" layoutY="190.0" prefWidth="60.0" style="-fx-alignment: center;" styleClass="ask-text" text="..." AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="190.0" />
+                        <Label layoutX="192.0" layoutY="170.0" text="Ask" AnchorPane.leftAnchor="220.0" AnchorPane.topAnchor="170.0" />
+                        <Label layoutX="254.0" layoutY="170.0" text="Bid" AnchorPane.leftAnchor="300.0" AnchorPane.topAnchor="170.0" />
+                        <Label fx:id="lblCallProductBid" layoutX="259.0" layoutY="190.0" prefWidth="60.0" style="-fx-alignment: center;" styleClass="bid-text" text="..." AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="190.0" />
+                        <Label fx:id="lblCallProductTime" layoutX="5.0" layoutY="149.0" prefHeight="15.0" prefWidth="170.0" style="-fx-alignment: center;" text="YYY/MM/DD HH:MM:SS" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="190.0" />
                         <Label layoutX="34.0" layoutY="178.0" text="Time" AnchorPane.leftAnchor="45.0" AnchorPane.topAnchor="170.0" />
                         <Label layoutX="200.0" layoutY="109.0" text="Last Value" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="109.0" />
                         <Label fx:id="lblCallProductLastValue" layoutX="280.0" layoutY="109.0" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="109.0" />

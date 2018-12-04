@@ -130,7 +130,12 @@ public class ProductSchema {
      */
     public void adopt(DProductDescription prod) {
         if (prod != null) {
+            setProductId(prod.getId());
             setProductName(prod.getName());
+            setIsin(prod.getIsin());
+            setCurrency(prod.getCurrency());
+            setSymbol(prod.getSymbol());
+            setTradable(prod.isTradable());
             setVwdId(prod.getVwdId());
             setProductTypeId(prod.getProductTypeId().toString());
             setClosePrice(prod.getClosePrice());

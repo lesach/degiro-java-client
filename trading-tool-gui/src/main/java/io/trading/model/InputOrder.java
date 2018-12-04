@@ -2,8 +2,12 @@ package io.trading.model;
 
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class InputOrder {
+    private static final Logger logger = LogManager.getLogger(Context.class);
+
     private final SimpleLongProperty productId;
     private final SimpleDoubleProperty amount;
     private final SimpleDoubleProperty price;
@@ -19,6 +23,22 @@ public class InputOrder {
         price = new SimpleDoubleProperty(0d);
         total = new SimpleDoubleProperty(0d);
         quantity = new SimpleLongProperty(0L);
+
+        amount.addListener((observable, oldValue, newValue) -> {
+            logger.info("InputOrder.amount changed from " + oldValue + " to " + newValue);
+            if (this.price.doubleValue() != 0d)
+                this.setQuantity(new Double(Math.floor(this.amount.doubleValue() / this.price.doubleValue())).longValue());
+            else
+                this.setQuantity(0L);
+        });
+
+        price.addListener((observable, oldValue, newValue) -> {
+            logger.info("InputOrder.price changed from " + oldValue + " to " + newValue);
+            if (this.price.doubleValue() != 0d)
+                this.setQuantity(Math.round(Math.floor(this.amount.doubleValue() / this.price.doubleValue())));
+            else
+                this.setQuantity(0L);
+        });
     }
 
 
@@ -32,10 +52,6 @@ public class InputOrder {
 
     public void setAmount(double amount) {
         this.amount.set(amount);
-        if (this.price.doubleValue() != 0d)
-            this.setQuantity(new Double(Math.floor(this.amount.doubleValue() / this.price.doubleValue())).longValue());
-        else
-            this.setQuantity(0L);
     }
 
     public double getTotal() {
@@ -60,7 +76,7 @@ public class InputOrder {
 
     public void setQuantity(long quantity) {
         this.quantity.set(quantity);
-        this.setTotal(this.price.doubleValue() * this.quantity.doubleValue());
+        this.setTotal(Math.round(this.price.doubleValue() * this.quantity.doubleValue() * 100d) / 100d);
     }
 
 
@@ -74,10 +90,6 @@ public class InputOrder {
 
     public void setPrice(double price) {
         this.price.set(price);
-        if (this.price.doubleValue() != 0d)
-            this.setQuantity(new Double(Math.floor(this.amount.doubleValue() / this.price.doubleValue())).longValue());
-        else
-            this.setQuantity(0L);
     }
 
     public long getProductId() {
