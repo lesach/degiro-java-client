@@ -141,6 +141,9 @@
                 <TableColumn fx:id="colOrderQuantity" prefWidth="75.0" text="Quantity" />
                 <TableColumn fx:id="colOrderCurrency" prefWidth="75.0" text="Currency" />
                   <TableColumn fx:id="colOrderDelete" prefWidth="75.0" text="Delete" />
+                  <TableColumn fx:id="colOrderAsk" prefWidth="75.0" text="Ask" />
+                  <TableColumn fx:id="colOrderBid" prefWidth="75.0" text="Bid" />
+                  <TableColumn fx:id="colOrderPriceTime" prefWidth="75.0" text="Price Time" />
               </columns>
             </TableView>
          </content>
@@ -164,6 +167,9 @@
                 <TableColumn fx:id="colPositionTime" prefWidth="75.0" text="Time" />
                   <TableColumn fx:id="colPositionSell" prefWidth="75.0" text="Sell" />
                   <TableColumn fx:id="colPositionStopLoss" prefWidth="75.0" text="Stop Loss" />
+                  <TableColumn fx:id="colPositionAsk" prefWidth="75.0" text="Ask" />
+                  <TableColumn fx:id="colPositionBid" prefWidth="75.0" text="Bid" />
+                  <TableColumn fx:id="colPositionPriceTime" prefWidth="75.0" text="Price Time" />
               </columns>
             </TableView>
          </content>
@@ -192,10 +198,10 @@
                         <Button fx:id="btnCallProductSearch" mnemonicParsing="false" onAction="#handleCallProductSearchButtonAction" text="Search" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="30.0" />
                         <Label layoutX="32.0" layoutY="93.0" text="Product" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="70.0" />
                         <Label fx:id="lblCallProductName" layoutX="42.0" layoutY="103.0" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="70.0" />
-                        <Label fx:id="lblCallProductAsk" layoutX="197.0" layoutY="190.0" prefWidth="60.0" style="-fx-alignment: center;" styleClass="ask-text" text="..." AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="190.0" />
+                        <Label fx:id="lblCallProductAsk" layoutX="197.0" layoutY="190.0" prefWidth="60.0" styleClass="ask-text" text="..." AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="190.0" />
                         <Label layoutX="192.0" layoutY="170.0" text="Ask" AnchorPane.leftAnchor="220.0" AnchorPane.topAnchor="170.0" />
                         <Label layoutX="254.0" layoutY="170.0" text="Bid" AnchorPane.leftAnchor="300.0" AnchorPane.topAnchor="170.0" />
-                        <Label fx:id="lblCallProductBid" layoutX="259.0" layoutY="190.0" prefWidth="60.0" style="-fx-alignment: center;" styleClass="bid-text" text="..." AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="190.0" />
+                        <Label fx:id="lblCallProductBid" layoutX="259.0" layoutY="190.0" prefWidth="60.0" styleClass="bid-text" text="..." AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="190.0" />
                         <Label fx:id="lblCallProductTime" layoutX="5.0" layoutY="149.0" prefHeight="15.0" prefWidth="170.0" style="-fx-alignment: center;" text="YYY/MM/DD HH:MM:SS" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="190.0" />
                         <Label layoutX="34.0" layoutY="178.0" text="Time" AnchorPane.leftAnchor="45.0" AnchorPane.topAnchor="170.0" />
                         <Label layoutX="200.0" layoutY="109.0" text="Last Value" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="109.0" />
@@ -209,6 +215,9 @@
                         <Label fx:id="lblCallProductBuyQuantity" layoutX="52.0" layoutY="113.0" text="..." AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="70.0" />
                         <Label fx:id="lblCallProductBuyTotal" layoutX="62.0" layoutY="123.0" text="..." AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="320.0" />
                         <Label layoutX="52.0" layoutY="113.0" text="Total" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="250.0" />
+                        <Rectangle fx:id="lblCallProductAskRectangle" fill="#ff2121" height="20.0" layoutX="204.0" layoutY="213.0" opacity="0.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="60.0" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="190.0" />
+                        <Rectangle fx:id="lblCallProductBidRectangle" fill="#ff2121" height="20.0" layoutX="214.0" layoutY="223.0" opacity="0.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="60.0" AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="190.0" />
+                        <Rectangle fx:id="lblCallProductPriceTimeRectangle" fill="#ff2121" height="20.0" layoutX="224.0" layoutY="233.0" opacity="0.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="170.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="190.0" />
                      </children>
                   </AnchorPane>
                   <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" />

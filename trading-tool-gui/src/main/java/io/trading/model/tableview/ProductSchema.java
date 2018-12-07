@@ -104,6 +104,17 @@ public class ProductSchema {
     }
 
     /**
+     * Update prices
+     * @param ask
+     * @param bid
+     */
+    public void update(double ask,
+                       double bid) {
+        this.setAsk(ask);
+        this.setBid(bid);
+    }
+
+    /**
      * Update product prices
      * @param prod new price
      */

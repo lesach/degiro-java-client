@@ -100,17 +100,6 @@ public class PositionTableViewSchema extends BasicSchema{
     }
 
     /**
-     * Update prices
-     * @param ask
-     * @param bid
-     */
-    public void update(double ask,
-                       double bid) {
-        this.setAsk(ask);
-        this.setBid(bid);
-    }
-
-    /**
      * Callback to make the GUI able to detect a item update
      * @return
      */

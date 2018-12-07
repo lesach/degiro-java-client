@@ -68,8 +68,8 @@ public class SanityScheduledService extends ScheduledService<Sanity> {
                     long now = new Date().getTime();
                     sanity.setPositionsPriceRefresh(positionsData.stream().noneMatch(p -> (now - p.getPriceTime()) > priceRefreshThreshold));
                     sanity.setOrdersPriceRefresh(ordersData.stream().noneMatch(p -> (now - p.getPriceTime()) > priceRefreshThreshold));
-                    //sanity.setProductPriceRefresh(products.values().stream().noneMatch(p -> (now - p.getPriceTime()) > priceRefreshThreshold));
-                    sanity.setCallProductPriceRefresh((now - callProduct.getPriceTime()) <= priceRefreshThreshold);
+                    sanity.setProductsPriceRefresh(products.values().stream().noneMatch(p -> (now - p.getPriceTime()) > priceRefreshThreshold));
+                    //sanity.setCallProductPriceRefresh((now - callProduct.getPriceTime()) <= priceRefreshThreshold);
 
                     // Build expected subscriptions
                     List<String> expected = Stream.concat(

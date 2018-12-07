@@ -27,6 +27,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        logger.info("Stage is starting");
         try {
             // Load FXML file path
             final URL url = getClass().getResource("/fxml/Main.fxml");
@@ -41,5 +42,10 @@ public class Main extends Application {
         catch (Exception e) {
             logger.error("ERROR in main", e);
         }
+    }
+
+    @Override
+    public void stop(){
+        logger.info("Stage is closing");
     }
 }

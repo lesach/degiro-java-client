@@ -41,17 +41,6 @@ public class OrderTableViewSchema extends BasicSchema {
     }
 
     /**
-     * Update prices
-     * @param ask
-     * @param bid
-     */
-    public void update(double ask,
-                       double bid) {
-        this.setAsk(ask);
-        this.setBid(bid);
-    }
-
-    /**
      *
      * @param id
      * @param buyOrSell

@@ -8,10 +8,12 @@
     -fx-text-fill: red;
     -fx-font-size: 13pt;
     -fx-font-weight: bold;
+    -fx-alignment: center;
 }
 
 .bid-text {
     -fx-text-fill: green;
     -fx-font-size: 13pt;
     -fx-font-weight: bold;
+    -fx-alignment: center;
 }

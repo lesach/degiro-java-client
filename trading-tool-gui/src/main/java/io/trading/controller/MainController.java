@@ -3,6 +3,7 @@ package io.trading.controller;
 import cat.indiketa.degiro.model.*;
 import com.google.gson.GsonBuilder;
 import io.trading.config.AppConfig;
+import io.trading.display.FlashingTableCell;
 import io.trading.display.LongDateStringConverter;
 import io.trading.model.Context;
 import io.trading.model.InputOrder;
@@ -13,20 +14,23 @@ import io.trading.model.tableview.OrderTableViewSchema;
 import io.trading.model.tableview.PositionTableViewSchema;
 import io.trading.provider.SubscriptionProvider;
 import io.trading.utils.Format;
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.converter.NumberStringConverter;
@@ -62,13 +66,13 @@ public class MainController implements Initializable {
 
 
     // Table viex
-    private ObservableList<PositionTableViewSchema> positionsData;
+    private final ObservableList<PositionTableViewSchema> positionsData = FXCollections.observableArrayList(PositionTableViewSchema.extractor());
     PositionsScheduledService positionsScheduledService;
 
-    private ObservableList<OrderTableViewSchema> ordersData;
+    private final ObservableList<OrderTableViewSchema> ordersData = FXCollections.observableArrayList(OrderTableViewSchema.extractor());
     OrdersScheduledService ordersScheduledService;
 
-    private Sanity sanity = new Sanity();
+    private final Sanity sanity = new Sanity();
     SanityScheduledService sanityScheduledService;
 
 
@@ -91,9 +95,16 @@ public class MainController implements Initializable {
     @FXML private Button btnCallProductSearch;
     @FXML private Label lblCallProductName;
     @FXML private Label lblCallProductIsin;
+    private static final Duration HIGHLIGHT_TIME = Duration.millis(500);
+    @FXML private Rectangle lblCallProductAskRectangle;
     @FXML private Label lblCallProductAsk;
+    private FadeTransition lblCallProductAskRectangleAnimation;
     @FXML private Label lblCallProductBid;
+    @FXML private Rectangle lblCallProductBidRectangle;
+    private FadeTransition lblCallProductBidRectangleAnimation;
     @FXML private Label lblCallProductTime;
+    @FXML private Rectangle lblCallProductPriceTimeRectangle;
+    private FadeTransition lblCallProductPriceTimeRectangleAnimation;
     @FXML private Label lblCallProductLastValue;
     @FXML private Label lblCallProductLastTime;
     @FXML private Button btnCallProductBuy;
@@ -116,6 +127,9 @@ public class MainController implements Initializable {
     @FXML TableColumn<PositionTableViewSchema, String> colPositionTime;
     @FXML TableColumn<PositionTableViewSchema, String> colPositionSell;
     @FXML TableColumn<PositionTableViewSchema, String> colPositionStopLoss;
+    @FXML TableColumn<PositionTableViewSchema, String> colPositionAsk;
+    @FXML TableColumn<PositionTableViewSchema, String> colPositionBid;
+    @FXML TableColumn<PositionTableViewSchema, String> colPositionPriceTime;
     @FXML private Circle shpPositions;
 
     // Order table
@@ -127,6 +141,9 @@ public class MainController implements Initializable {
     @FXML TableColumn<OrderTableViewSchema, Double> colOrderQuantity;
     @FXML TableColumn<OrderTableViewSchema, String> colOrderCurrency;
     @FXML TableColumn<OrderTableViewSchema, String> colOrderDelete;
+    @FXML TableColumn<PositionTableViewSchema, String> colOrderAsk;
+    @FXML TableColumn<PositionTableViewSchema, String> colOrderBid;
+    @FXML TableColumn<PositionTableViewSchema, String> colOrderPriceTime;
     @FXML private Circle shpOrders;
 
 
@@ -190,8 +207,7 @@ public class MainController implements Initializable {
                 };
         colPositionSell.setCellFactory(positionSellCellFactory);
 
-
-        colPositionSell.setCellValueFactory(new PropertyValueFactory<>("DummyStopLoss"));
+        colPositionStopLoss.setCellValueFactory(new PropertyValueFactory<>("DummyStopLoss"));
         Callback<TableColumn<PositionTableViewSchema, String>,
                 TableCell<PositionTableViewSchema, String>> positionStopLossCellFactory
                 = new Callback<TableColumn<PositionTableViewSchema, String>,
@@ -257,15 +273,24 @@ public class MainController implements Initializable {
         });
 
 
-        positionsScheduledService = new PositionsScheduledService(context);
+        colPositionAsk.setCellValueFactory(new PropertyValueFactory<>("ask"));
+        colPositionAsk.setCellFactory(c -> new FlashingTableCell<>(null, Pos.CENTER_RIGHT));
+
+        colPositionBid.setCellValueFactory(new PropertyValueFactory<>("bid"));
+        colPositionBid.setCellFactory(c -> new FlashingTableCell<>(null, Pos.CENTER_RIGHT));
+
+        colPositionPriceTime.setCellValueFactory(new PropertyValueFactory<>("priceTime"));
+        colPositionPriceTime.setCellFactory(c -> new FlashingTableCell<>(null, Pos.CENTER_RIGHT));
+
+        positionsScheduledService = new PositionsScheduledService(context, positionsData);
         positionsScheduledService.setPeriod(Duration.seconds(30));
         positionsScheduledService.setOnSucceeded((WorkerStateEvent t) -> {
             logger.info("Positions refreshed: " + t.getSource().getValue());
-            positionsData = (ObservableList<PositionTableViewSchema>) t.getSource().getValue();
-            tabPositions.setItems(positionsData);
+            //positionsData = (ObservableList<PositionTableViewSchema>) t.getSource().getValue();
+            //tabPositions.setItems(positionsData);
             subscriptionProvider.mergeDescriptionProducts(positionsData);
         });
-
+        tabPositions.setItems(positionsData);
         // Orders table
         colOrderBuyOrSell.setCellValueFactory(new PropertyValueFactory<>("buyOrSell"));
         colOrderProduct.setCellValueFactory(new PropertyValueFactory<>("productName"));
@@ -331,15 +356,24 @@ public class MainController implements Initializable {
                 }
             }
         });
+        colOrderAsk.setCellValueFactory(new PropertyValueFactory<>("ask"));
+        colOrderAsk.setCellFactory(c -> new FlashingTableCell<>(null, Pos.CENTER_RIGHT));
+
+        colOrderBid.setCellValueFactory(new PropertyValueFactory<>("bid"));
+        colOrderBid.setCellFactory(c -> new FlashingTableCell<>(null, Pos.CENTER_RIGHT));
+
+        colOrderPriceTime.setCellValueFactory(new PropertyValueFactory<>("priceTime"));
+        colOrderPriceTime.setCellFactory(c -> new FlashingTableCell<>(null, Pos.CENTER_RIGHT));
+
         tabOrders.setItems(ordersData);
 
         // Order refresh task
-        ordersScheduledService = new OrdersScheduledService(context);
+        ordersScheduledService = new OrdersScheduledService(context, ordersData);
         ordersScheduledService.setPeriod(Duration.seconds(30));
         ordersScheduledService.setOnSucceeded((WorkerStateEvent t) -> {
             logger.info("Orders refreshed: " + t.getSource().getValue());
-            ordersData = (ObservableList<OrderTableViewSchema>) t.getSource().getValue();
-            tabOrders.setItems(ordersData);
+            //ordersData = (ObservableList<OrderTableViewSchema>) t.getSource().getValue();
+            //tabOrders.setItems(ordersData);
             subscriptionProvider.mergeDescriptionProducts(ordersData);
         });
 
@@ -356,6 +390,14 @@ public class MainController implements Initializable {
         sanityScheduledService.setOnSucceeded((WorkerStateEvent t) -> {
             logger.info("Sanity check refreshed");
         });
+
+        // Label animations on price refresh
+        lblCallProductAskRectangleAnimation = new FadeTransition(HIGHLIGHT_TIME, lblCallProductAskRectangle);
+        lblCallProductAsk.textProperty().addListener((observable) -> flashLabel(lblCallProductAskRectangleAnimation));
+        lblCallProductBidRectangleAnimation = new FadeTransition(HIGHLIGHT_TIME, lblCallProductAskRectangle);
+        lblCallProductBid.textProperty().addListener((observable) -> flashLabel(lblCallProductBidRectangleAnimation));
+        lblCallProductPriceTimeRectangleAnimation = new FadeTransition(HIGHLIGHT_TIME, lblCallProductPriceTimeRectangle);
+        lblCallProductTime.textProperty().addListener((observable) -> flashLabel(lblCallProductPriceTimeRectangleAnimation));
 
         // Initialize credentials
         txtUser.setText(AppConfig.getDegiroUserName());
@@ -404,6 +446,18 @@ public class MainController implements Initializable {
             return Paint.valueOf("#55FF55");
         else
             return Paint.valueOf("#FF5555");
+    }
+
+    /**
+     * flashLabel
+     * @param transition Animation to play
+     */
+    private void flashLabel(FadeTransition transition) {
+        transition.setFromValue(1);
+        transition.setToValue(0);
+        transition.setCycleCount(1);
+        transition.setAutoReverse(false);
+        transition.playFromStart();
     }
 
     /**
@@ -460,18 +514,8 @@ public class MainController implements Initializable {
      * @param price to update
      */
     private void updatePrices(DPrice price) {
-        if (positionsData != null) {
-            FilteredList<PositionTableViewSchema> positionList = positionsData.filtered(t -> t.getId().equals(price.getIssueId()));
-            if (!positionList.isEmpty()) {
-                positionList.get(0).update(price.getAsk(), price.getBid());
-            }
-        }
-        if (ordersData != null) {
-            FilteredList<OrderTableViewSchema> orderList = ordersData.filtered(t -> t.getId().equals(price.getIssueId()));
-            if (!orderList.isEmpty()) {
-                orderList.get(0).update(price.getAsk(), price.getBid());
-            }
-        }
+        for(ObservableList<? extends BasicSchema> l : Arrays.asList(positionsData, ordersData))
+            l.filtered(t -> t.getVwdId().equals(price.getIssueId())).forEach(p ->p.update(price.getAsk(), price.getBid()));
     }
 
     /**
@@ -556,7 +600,6 @@ public class MainController implements Initializable {
             lblCallProductLastValue.textProperty().unbindBidirectional(callProductSchema.lastProperty());
             lblCallProductLastTime.textProperty().unbindBidirectional(callProductSchema.priceTimeProperty());
             lblCallProductTime.textProperty().unbindBidirectional(callProductSchema.priceTimeProperty());
-            lblCallProductBuyQuantity.setText("0");
             txtCallProductBuyAmount.setDisable(true);
             btnCallProductBuy.setDisable(true);
             // Order
@@ -565,6 +608,7 @@ public class MainController implements Initializable {
             txtCallProductBuyAmount.textProperty().unbindBidirectional(callOrder.amountProperty());
             lblCallProductBuyQuantity.textProperty().unbindBidirectional(callOrder.quantityProperty());
             lblCallProductBuyTotal.textProperty().unbindBidirectional(callOrder.totalProperty());
+            lblCallProductBuyQuantity.setText("0");
         }
     }
 
@@ -581,7 +625,7 @@ public class MainController implements Initializable {
             List<DProductDescription> descriptions = this.context.searchProducts(txtCallProductSearch.getText());
             if (descriptions != null && descriptions.size() == 1) {
                 subscriptionProvider.mergeDescriptionProducts(descriptions);
-                setCallProductSchema(subscriptionProvider.getProducts().get(descriptions.get(0).getId()));
+                setCallProductSchema(subscriptionProvider.getProducts().get(Long.toString(descriptions.get(0).getId())));
                 callOrder.setProductId(descriptions.get(0).getId());
             }
         }

@@ -14,11 +14,13 @@ import javafx.concurrent.Task;
 import java.util.Date;
 
 public class PositionsScheduledService extends ScheduledService<ObservableList<PositionTableViewSchema>> {
-    private final ObservableList<PositionTableViewSchema> positionsData = FXCollections.observableArrayList(PositionTableViewSchema.extractor());
     private final Context context;
+    private final ObservableList<PositionTableViewSchema> positionsData;
 
-    PositionsScheduledService(Context context) {
+    PositionsScheduledService(Context context,
+                              ObservableList<PositionTableViewSchema> positionsData) {
         this.context = context;
+        this.positionsData = positionsData;
     }
 
     /**
@@ -98,7 +100,7 @@ public class PositionsScheduledService extends ScheduledService<ObservableList<P
                             );
                         }
                     });
-                    positionsData.removeIf(o -> products.getActive().stream().anyMatch(e -> e.getId() == o.getId()));
+                    positionsData.removeIf(o -> products.getActive().stream().anyMatch(e -> e.getId().equals(o.getId())));
                 }
                 return positionsData;
             }

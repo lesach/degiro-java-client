@@ -4,7 +4,6 @@ import cat.indiketa.degiro.model.DOrder;
 import io.trading.config.AppConfig;
 import io.trading.model.Context;
 import io.trading.model.tableview.OrderTableViewSchema;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.ScheduledService;
@@ -13,11 +12,13 @@ import javafx.concurrent.Task;
 import java.util.List;
 
 public class OrdersScheduledService extends ScheduledService<ObservableList<OrderTableViewSchema>> {
-    private final ObservableList<OrderTableViewSchema> ordersData = FXCollections.observableArrayList(OrderTableViewSchema.extractor());
+    private final ObservableList<OrderTableViewSchema> ordersData;
     private final Context context;
 
-    OrdersScheduledService(Context context) {
+    OrdersScheduledService(Context context,
+                           ObservableList<OrderTableViewSchema> ordersData) {
         this.context = context;
+        this.ordersData = ordersData;
     }
 
     /**
@@ -82,7 +83,7 @@ public class OrdersScheduledService extends ScheduledService<ObservableList<Orde
                             );
                         }
                     });
-                    ordersData.removeIf(o -> !orders.stream().anyMatch(e -> e.getId().equals(o.getId())));
+                    ordersData.removeIf(o -> orders.stream().noneMatch(e -> e.getId().equals(o.getId())));
                 }
                 return ordersData;
             }
