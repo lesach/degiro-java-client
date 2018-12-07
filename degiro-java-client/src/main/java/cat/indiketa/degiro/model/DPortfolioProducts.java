@@ -33,7 +33,7 @@ public class DPortfolioProducts {
 
     public static class DPortfolioProduct {
 
-        protected long id;
+        protected String id;
         protected String product;
         protected long size;
         protected BigDecimal price;
@@ -52,11 +52,11 @@ public class DPortfolioProducts {
         protected BigDecimal plBase;
         protected BigDecimal todayPlBase;
 
-        public long getId() {
+        public String getId() {
             return id;
         }
 
-        public void setId(long id) {
+        public void setId(String id) {
             this.id = id;
         }
 
@@ -210,7 +210,7 @@ public class DPortfolioProducts {
         @Override
         public int hashCode() {
             int hash = 3;
-            hash = 17 * hash + (int) (this.id ^ (this.id >>> 32));
+            hash = 17 * hash + Objects.hashCode(this.id);
             hash = 17 * hash + Objects.hashCode(this.product);
             hash = 17 * hash + (int) (this.size ^ (this.size >>> 32));
             hash = 17 * hash + Objects.hashCode(this.price);

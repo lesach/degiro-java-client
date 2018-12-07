@@ -17,27 +17,23 @@ public class PositionsScheduledService extends ScheduledService<ObservableList<P
     private final ObservableList<PositionTableViewSchema> positionsData = FXCollections.observableArrayList(PositionTableViewSchema.extractor());
     private final Context context;
 
-    public PositionsScheduledService(Context context) {
+    PositionsScheduledService(Context context) {
         this.context = context;
-    }
-
-    public ObservableList<PositionTableViewSchema> getPositionsData() {
-        return positionsData;
     }
 
     /**
      * Load positions
-     * @return
+     * @return positions
      */
     protected Task<ObservableList<PositionTableViewSchema>> createTask(){
         return new Task<ObservableList<PositionTableViewSchema>>(){
             @Override
             protected ObservableList<PositionTableViewSchema> call() {
                 if (AppConfig.getTest()) {
-                    FilteredList<PositionTableViewSchema> list = positionsData.filtered(t -> t.getId() == 123456L);
+                    FilteredList<PositionTableViewSchema> list = positionsData.filtered(t -> t.getId().equals("123456"));
                     PositionTableViewSchema s;
                     if (list.isEmpty()) {
-                        s = new PositionTableViewSchema(123456L,
+                        s = new PositionTableViewSchema("123456",
                                 "ProductSchema",
                                 "Place",
                                 987.4D,
@@ -53,7 +49,7 @@ public class PositionsScheduledService extends ScheduledService<ObservableList<P
                     }
                     else {
                         s = list.get(0);
-                        s.update(123456L,
+                        s.update("123456",
                                 "ProductSchema",
                                 "Place",
                                 1987.4D,
@@ -102,6 +98,7 @@ public class PositionsScheduledService extends ScheduledService<ObservableList<P
                             );
                         }
                     });
+                    positionsData.removeIf(o -> products.getActive().stream().anyMatch(e -> e.getId() == o.getId()));
                 }
                 return positionsData;
             }

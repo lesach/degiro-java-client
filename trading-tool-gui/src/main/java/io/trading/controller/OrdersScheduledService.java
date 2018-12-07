@@ -16,24 +16,20 @@ public class OrdersScheduledService extends ScheduledService<ObservableList<Orde
     private final ObservableList<OrderTableViewSchema> ordersData = FXCollections.observableArrayList(OrderTableViewSchema.extractor());
     private final Context context;
 
-    public OrdersScheduledService(Context context) {
+    OrdersScheduledService(Context context) {
         this.context = context;
-    }
-
-    public ObservableList<OrderTableViewSchema> getOrdersData() {
-        return ordersData;
     }
 
     /**
      * Load positions
-     * @return
+     * @return Orders
      */
     protected Task<ObservableList<OrderTableViewSchema>> createTask(){
         return new Task<ObservableList<OrderTableViewSchema>>(){
             @Override
             protected ObservableList<OrderTableViewSchema> call() {
                 if (AppConfig.getTest()) {
-                    FilteredList<OrderTableViewSchema> list = ordersData.filtered(t -> t.getId() == "123456Id");
+                    FilteredList<OrderTableViewSchema> list = ordersData.filtered(t -> t.getId().equals("123456Id"));
                     OrderTableViewSchema s;
                     if (list.isEmpty()) {
                         s = new OrderTableViewSchema("123456Id",
@@ -42,7 +38,7 @@ public class OrdersScheduledService extends ScheduledService<ObservableList<Orde
                                 "LIMIT",
                                 15.65d,
                                 "EUR",
-                                98l
+                                98L
                         );
                         ordersData.add(s);
                     }
@@ -54,7 +50,7 @@ public class OrdersScheduledService extends ScheduledService<ObservableList<Orde
                                 "LIMIT",
                                 12.45d,
                                 "EUR",
-                                100l
+                                100L
                         );
                     }
                 }
@@ -86,6 +82,7 @@ public class OrdersScheduledService extends ScheduledService<ObservableList<Orde
                             );
                         }
                     });
+                    ordersData.removeIf(o -> !orders.stream().anyMatch(e -> e.getId().equals(o.getId())));
                 }
                 return ordersData;
             }

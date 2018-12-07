@@ -8,7 +8,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.util.Callback;
 
 public class PositionTableViewSchema extends BasicSchema{
-    private final SimpleLongProperty id;
+    private final SimpleStringProperty id;
     private final SimpleStringProperty place;
     private final SimpleDoubleProperty price;
     private final SimpleDoubleProperty dailyPL;
@@ -32,7 +32,7 @@ public class PositionTableViewSchema extends BasicSchema{
      * @param totalPL
      * @param time
      */
-    public PositionTableViewSchema(long id,
+    public PositionTableViewSchema(String id,
                                     String product,
                                     String place,
                                     double price,
@@ -48,7 +48,7 @@ public class PositionTableViewSchema extends BasicSchema{
         this.setProductName(product);
         this.setCurrency(currency);
         this.setQuantity(quantity);
-        this.id = new SimpleLongProperty(id);
+        this.id = new SimpleStringProperty(id);
         this.place = new SimpleStringProperty(place);
         this.price = new SimpleDoubleProperty(price);
         this.setTotal(total);
@@ -75,7 +75,7 @@ public class PositionTableViewSchema extends BasicSchema{
      * @param totalPL
      * @param time
      */
-    public void update(long id,
+    public void update(String id,
                        String product,
                        String place,
                        double price,
@@ -202,15 +202,15 @@ public class PositionTableViewSchema extends BasicSchema{
         this.time.set(time);
     }
 
-    public long getId() {
+    public String getId() {
         return id.get();
     }
 
-    public SimpleLongProperty idProperty() {
+    public SimpleStringProperty idProperty() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id.set(id);
     }
 

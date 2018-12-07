@@ -7,6 +7,7 @@ import cat.indiketa.degiro.exceptions.DeGiroException;
 import cat.indiketa.degiro.log.DLog;
 import cat.indiketa.degiro.model.*;
 import cat.indiketa.degiro.session.DPersistentSession;
+import cat.indiketa.degiro.session.DSession;
 import cat.indiketa.degiro.utils.DCredentials;
 import com.google.common.base.Strings;
 import io.trading.config.AppConfig;
@@ -45,6 +46,14 @@ public class ConnectionProvider {
             this.degiro = DeGiroFactory.newInstance(creds,  new DPersistentSession(AppConfig.getDegiroPersitentSessionPath()));
     }
 
+
+    /**
+     * return session state
+     * @return session state
+     */
+    public boolean isConnected() {
+         return degiro.isConnected();
+    }
 
     /**
      * set listener on price refresh

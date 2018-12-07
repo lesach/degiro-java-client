@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class SubscriptionProvider {
 
-    private final Map<Long, ProductSchema> products = new HashMap<>();
+    private final Map<String, ProductSchema> products = new HashMap<>();
     private final List<String> subscribedProducts = new ArrayList<>();
     private final Context context;
 
@@ -77,8 +77,8 @@ public class SubscriptionProvider {
         boolean oneRegistered = false;
         if (newProducts != null) {
             for (DProductDescription product : newProducts) {
-                if (products.containsKey(product.getId())) {
-                    products.get(product.getId()).adopt(product);
+                if (products.containsKey(Long.toString(product.getId()))) {
+                    products.get(Long.toString(product.getId())).adopt(product);
                 } else {
                     registerProduct(product);
                     oneRegistered = true;
@@ -117,7 +117,7 @@ public class SubscriptionProvider {
     private void registerProduct(DProductDescription add) {
         ProductSchema pro = new ProductSchema();
         pro.adopt(add);
-        products.put(add.getId(), pro);
+        products.put(Long.toString(add.getId()), pro);
         manageSubscription();
     }
 
@@ -137,10 +137,18 @@ public class SubscriptionProvider {
     }
 
     /**
-     * Accesor
+     * Accessor
      * @return ProductSchema list
      */
-    public Map<Long, ProductSchema> getProducts() {
+    public Map<String, ProductSchema> getProducts() {
         return products;
+    }
+
+    /**
+     * Accessor
+     * @return Subscribed products
+     */
+    public List<String> getSubscribedProducts() {
+        return subscribedProducts;
     }
 }

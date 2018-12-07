@@ -65,4 +65,6 @@ public interface DeGiro {
 
     DPriceHistory getPriceHistory(Long issueId) throws DeGiroException;
 
+    boolean isConnected();
+
 }

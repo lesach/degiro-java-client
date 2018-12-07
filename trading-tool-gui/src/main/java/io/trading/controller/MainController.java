@@ -6,17 +6,20 @@ import io.trading.config.AppConfig;
 import io.trading.display.LongDateStringConverter;
 import io.trading.model.Context;
 import io.trading.model.InputOrder;
+import io.trading.model.Sanity;
+import io.trading.model.tableview.BasicSchema;
 import io.trading.model.tableview.ProductSchema;
 import io.trading.model.tableview.OrderTableViewSchema;
 import io.trading.model.tableview.PositionTableViewSchema;
 import io.trading.provider.SubscriptionProvider;
 import io.trading.utils.Format;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.ObjectBinding;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -31,7 +34,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.URL;
 import java.util.*;
 
@@ -62,8 +64,12 @@ public class MainController implements Initializable {
     // Table viex
     private ObservableList<PositionTableViewSchema> positionsData;
     PositionsScheduledService positionsScheduledService;
+
     private ObservableList<OrderTableViewSchema> ordersData;
     OrdersScheduledService ordersScheduledService;
+
+    private Sanity sanity = new Sanity();
+    SanityScheduledService sanityScheduledService;
 
 
     // Credentials pane
@@ -94,6 +100,7 @@ public class MainController implements Initializable {
     @FXML private Label lblCallProductBuyQuantity;
     @FXML private Label lblCallProductBuyTotal;
     @FXML private TextField txtCallProductBuyAmount;
+    @FXML private Circle shpProducts;
 
     // Position Table
     @FXML TableView<PositionTableViewSchema> tabPositions;
@@ -109,6 +116,7 @@ public class MainController implements Initializable {
     @FXML TableColumn<PositionTableViewSchema, String> colPositionTime;
     @FXML TableColumn<PositionTableViewSchema, String> colPositionSell;
     @FXML TableColumn<PositionTableViewSchema, String> colPositionStopLoss;
+    @FXML private Circle shpPositions;
 
     // Order table
     @FXML TableView<OrderTableViewSchema> tabOrders;
@@ -119,9 +127,11 @@ public class MainController implements Initializable {
     @FXML TableColumn<OrderTableViewSchema, Double> colOrderQuantity;
     @FXML TableColumn<OrderTableViewSchema, String> colOrderCurrency;
     @FXML TableColumn<OrderTableViewSchema, String> colOrderDelete;
+    @FXML private Circle shpOrders;
 
 
     @Override
+    @SuppressWarnings("unchecked")
     public void initialize(URL location, ResourceBundle resources) {
         logger.info("Controller loading...");
         // Positions table
@@ -162,7 +172,7 @@ public class MainController implements Initializable {
                                         DNewOrder order = new DNewOrder(DOrderAction.SELL,
                                                 DOrderType.LIMITED,
                                                 DOrderTime.DAY,
-                                                p.getId(),
+                                                Long.parseLong(p.getId()),
                                                 Double.valueOf(p.getQuantity()).longValue(),
                                                 new BigDecimal(p.getBid()),
                                                 null);
@@ -207,7 +217,7 @@ public class MainController implements Initializable {
                                 DNewOrder order = new DNewOrder(DOrderAction.SELL,
                                         DOrderType.LIMITED_STOP_LOSS,
                                         DOrderTime.DAY,
-                                        p.getId(),
+                                        Long.parseLong(p.getId()),
                                         Double.valueOf(p.getQuantity()).longValue(),
                                         new BigDecimal(p.getBid()),
                                         null);
@@ -249,14 +259,11 @@ public class MainController implements Initializable {
 
         positionsScheduledService = new PositionsScheduledService(context);
         positionsScheduledService.setPeriod(Duration.seconds(30));
-        positionsScheduledService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-            @Override
-            public void handle(WorkerStateEvent t) {
-                logger.info("Positions refreshed: " + t.getSource().getValue());
-                positionsData = (ObservableList<PositionTableViewSchema>) t.getSource().getValue();
-                tabPositions.setItems(positionsData);
-                subscriptionProvider.mergeDescriptionProducts(positionsData);
-            }
+        positionsScheduledService.setOnSucceeded((WorkerStateEvent t) -> {
+            logger.info("Positions refreshed: " + t.getSource().getValue());
+            positionsData = (ObservableList<PositionTableViewSchema>) t.getSource().getValue();
+            tabPositions.setItems(positionsData);
+            subscriptionProvider.mergeDescriptionProducts(positionsData);
         });
 
         // Orders table
@@ -324,35 +331,80 @@ public class MainController implements Initializable {
                 }
             }
         });
-
-
-        ordersScheduledService = new OrdersScheduledService(context);
-        ordersScheduledService.setPeriod(Duration.seconds(30));
-        ordersScheduledService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-            @Override
-            public void handle(WorkerStateEvent t) {
-                logger.info("orders refreshed: " + t.getSource().getValue());
-                ordersData = (ObservableList<OrderTableViewSchema>) t.getSource().getValue();
-                tabOrders.setItems(ordersData);
-                subscriptionProvider.mergeDescriptionProducts(ordersData);
-            }
-        });
-
         tabOrders.setItems(ordersData);
 
-        // Test onChange
-        txtCallProductBuyAmount.textProperty().addListener((observable, oldValue, newValue) -> {
-            logger.info("Call order amount changed from " + oldValue + " to " + newValue);
+        // Order refresh task
+        ordersScheduledService = new OrdersScheduledService(context);
+        ordersScheduledService.setPeriod(Duration.seconds(30));
+        ordersScheduledService.setOnSucceeded((WorkerStateEvent t) -> {
+            logger.info("Orders refreshed: " + t.getSource().getValue());
+            ordersData = (ObservableList<OrderTableViewSchema>) t.getSource().getValue();
+            tabOrders.setItems(ordersData);
+            subscriptionProvider.mergeDescriptionProducts(ordersData);
+        });
 
+
+        // Check
+        sanityScheduledService = new SanityScheduledService(context,
+                ordersData,
+                positionsData,
+                subscriptionProvider.getProducts(),
+                subscriptionProvider.getSubscribedProducts(),
+                callProductSchema,
+                sanity);
+        sanityScheduledService.setPeriod(Duration.seconds(30));
+        sanityScheduledService.setOnSucceeded((WorkerStateEvent t) -> {
+            logger.info("Sanity check refreshed");
         });
 
         // Initialize credentials
         txtUser.setText(AppConfig.getDegiroUserName());
         txtPassword.setText(AppConfig.getDegiroPassword());
 
+        // Color binding: Connected
+        ObjectBinding<Paint> connectedBinding = Bindings.createObjectBinding(() -> booleanToPaint(sanity.connectedProperty().get()), sanity.connectedProperty());
+        connectedBinding.addListener((observable, oldValue, newValue) -> {
+            logger.info("Connected binding changed from " + oldValue + " to " + newValue);
+        });
+        shpConnected.fillProperty().bind(connectedBinding);
+
+        // Color binding: Positions
+        ObjectBinding<Paint> positionsPriceRefreshPropertyBinding = Bindings.createObjectBinding(() -> booleanToPaint(sanity.positionsPriceRefreshProperty().get()), sanity.positionsPriceRefreshProperty());
+        positionsPriceRefreshPropertyBinding.addListener((observable, oldValue, newValue) -> {
+            logger.info("Positions Price Refresh binding changed from " + oldValue + " to " + newValue);
+        });
+        shpPositions.fillProperty().bind(positionsPriceRefreshPropertyBinding);
+
+        // Color binding: Orders
+        ObjectBinding<Paint> ordersPriceRefreshPropertyBinding = Bindings.createObjectBinding(() -> booleanToPaint(sanity.ordersPriceRefreshProperty().get()), sanity.ordersPriceRefreshProperty());
+        ordersPriceRefreshPropertyBinding.addListener((observable, oldValue, newValue) -> {
+            logger.info("Orders Price Refresh binding changed from " + oldValue + " to " + newValue);
+        });
+        shpOrders.fillProperty().bind(ordersPriceRefreshPropertyBinding);
+
+        // Color binding: Products
+        ObjectBinding<Paint> productsPriceRefreshPropertyBinding = Bindings.createObjectBinding(() -> booleanToPaint(sanity.productsPriceRefreshProperty().get()), sanity.productsPriceRefreshProperty());
+        productsPriceRefreshPropertyBinding.addListener((observable, oldValue, newValue) -> {
+            logger.info("Products Price Refresh binding changed from " + oldValue + " to " + newValue);
+        });
+        shpProducts.fillProperty().bind(productsPriceRefreshPropertyBinding);
+
+
+        sanityScheduledService.start();
         logger.info("Controller is now loaded");
     }
 
+    /**
+     * booleanToPaint
+     * @param value To convert
+     * @return Paint
+     */
+    private Paint booleanToPaint(boolean value) {
+        if (value)
+            return Paint.valueOf("#55FF55");
+        else
+            return Paint.valueOf("#FF5555");
+    }
 
     /**
      * Check if user and password are not empty
@@ -403,14 +455,13 @@ public class MainController implements Initializable {
        }
     }
 
-
     /**
      * Update displayed prices
      * @param price to update
      */
     private void updatePrices(DPrice price) {
         if (positionsData != null) {
-            FilteredList<PositionTableViewSchema> positionList = positionsData.filtered(t -> Long.toString(t.getId()).equals(price.getIssueId()));
+            FilteredList<PositionTableViewSchema> positionList = positionsData.filtered(t -> t.getId().equals(price.getIssueId()));
             if (!positionList.isEmpty()) {
                 positionList.get(0).update(price.getAsk(), price.getBid());
             }
@@ -436,34 +487,32 @@ public class MainController implements Initializable {
                 txtUser.getStyleClass().remove("error");
                 txtPassword.getStyleClass().remove("error");
                 // Register a price update listener (called on price update)
-                context.setPriceListener(new DPriceListener() {
-                    @Override
-                    public void priceChanged(DPrice price) {
-                        logger.info("Price changed: " + new GsonBuilder().setPrettyPrinting().create().toJson(price));
-                        Optional<ProductSchema> product = subscriptionProvider.getProducts().values().stream().filter(p -> p.getVwdId().equals(price.getIssueId())).findFirst();
-                        Platform.runLater(() -> {
-                            product.ifPresent(p -> {
-                                p.adopt(price);
-                                //if (callOrder.getProductId() == p.getProductId())
-                                    //callOrder.setPrice(price.getAsk());
-                            });
-                            updatePrices(price);
+                context.setPriceListener((DPrice price) -> {
+                    logger.info("Price changed: " + new GsonBuilder().setPrettyPrinting().create().toJson(price));
+                    Optional<ProductSchema> product = subscriptionProvider.getProducts().values().stream().filter(p -> p.getVwdId().equals(price.getIssueId())).findFirst();
+                    Platform.runLater(() -> {
+                        product.ifPresent(p -> {
+                            p.adopt(price);
+                            //if (callOrder.getProductId() == p.getProductId())
+                                //callOrder.setPrice(price.getAsk());
                         });
-                    }
+                        updatePrices(price);
+                    });
                 });
                 positionsScheduledService.start();
-                shpConnected.setFill(Paint.valueOf("#55FF55"));
+                ordersScheduledService.start();
+                //shpConnected.setFill(Paint.valueOf("#55FF55"));
             }
             else {
                 txtUser.getStyleClass().add("error");
                 txtPassword.getStyleClass().add("error");
-                shpConnected.setFill(Paint.valueOf("#FF5555"));
+                //shpConnected.setFill(Paint.valueOf("#FF5555"));
             }
             displayPortFolio();
         }
-        else {
-            shpConnected.setFill(Paint.valueOf("#FF5555"));
-        }
+        //else {
+            //shpConnected.setFill(Paint.valueOf("#FF5555"));
+        //}
     }
 
 
@@ -486,7 +535,7 @@ public class MainController implements Initializable {
             lblCallProductAsk.textProperty().bindBidirectional(callProductSchema.askProperty(), new NumberStringConverter());
             lblCallProductBid.textProperty().bindBidirectional(callProductSchema.bidProperty(), new NumberStringConverter());
             lblCallProductLastValue.textProperty().bindBidirectional(callProductSchema.lastProperty(), new NumberStringConverter());
-            lblCallProductLastTime.textProperty().bindBidirectional(callProductSchema.priceTimeProperty(), new LongDateStringConverter());
+            lblCallProductLastTime.textProperty().bindBidirectional(callProductSchema.lastTimeProperty(), new LongDateStringConverter());
             btnCallProductBuy.disableProperty().bind(callProductSchema.tradableProperty().not());
             txtCallProductBuyAmount.disableProperty().bind(callProductSchema.tradableProperty().not());
             lblCallProductTime.textProperty().bindBidirectional(callProductSchema.priceTimeProperty(), new LongDateStringConverter());
@@ -544,7 +593,6 @@ public class MainController implements Initializable {
      */
     @FXML protected void handleCallProductBuyButtonAction(ActionEvent event) {
         logger.info("Call ProductSchema Buy button pressed");
-        FilteredList<PositionTableViewSchema> list = this.positionsData.filtered(t -> t.getId() == 123456L);
         if (this.getCallProductSchema() != null) {
             if (this.getCallProductSchema().isTradable())
             {
@@ -567,7 +615,7 @@ public class MainController implements Initializable {
                     DNewOrder order = new DNewOrder(DOrderAction.SELL,
                             DOrderType.LIMITED,
                             DOrderTime.DAY,
-                            getCallProductSchema().getProductId(),
+                            Long.parseLong(getCallProductSchema().getProductId()),
                             Long.parseLong(lblCallProductBuyQuantity.getText()),
                             Format.parseBigDecimal(lblCallProductAsk.getText()),
                             null);
@@ -606,21 +654,4 @@ public class MainController implements Initializable {
         return false;
     }
 
-
-    /**
-     * Compute Call order
-     */
-    private void computeCallQuantityAndTotal() {
-        BigDecimal amount = Format.parseBigDecimal(txtCallProductBuyAmount.getText());
-        BigDecimal price = Format.parseBigDecimal(lblCallProductAsk.getText());
-        if (amount == null || price == null) {
-            lblCallProductBuyQuantity.setText("0");
-            lblCallProductBuyTotal.setText("0");
-        }
-        else {
-            BigDecimal quantity = amount.divide(price, RoundingMode.FLOOR);
-            lblCallProductBuyQuantity.setText(Long.toString(quantity.longValueExact()));
-            lblCallProductBuyTotal.setText(Format.formatBigDecimal(quantity.multiply(price)));
-        }
-    }
 }

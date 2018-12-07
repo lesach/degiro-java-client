@@ -27,7 +27,7 @@ public class InputOrder {
         amount.addListener((observable, oldValue, newValue) -> {
             logger.info("InputOrder.amount changed from " + oldValue + " to " + newValue);
             if (this.price.doubleValue() != 0d)
-                this.setQuantity(new Double(Math.floor(this.amount.doubleValue() / this.price.doubleValue())).longValue());
+                this.setQuantity(Math.round(Math.floor(this.amount.doubleValue() / this.price.doubleValue())));
             else
                 this.setQuantity(0L);
         });

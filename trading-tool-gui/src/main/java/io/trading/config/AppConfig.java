@@ -38,5 +38,12 @@ public class AppConfig {
         return env.get("TEST").toLowerCase().equals("true");
     }
 
+    /**
+     * return Test mode
+     * @return boolean Test mode
+     */
+    static public int getPriceRefreshErrorThreshold() {
+        return Integer.parseInt(env.get("PRICE_REFRESH_ERROR_THRESHOLD"));
+    }
 }
 

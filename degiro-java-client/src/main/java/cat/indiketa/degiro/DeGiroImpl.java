@@ -104,6 +104,7 @@ public class DeGiroImpl implements DeGiro {
         try {
             DResponse response = comm.getData(session, "portfolio=" + portfolioLastUpdate, null);
             String data = getResponseData(response);
+            DLog.DEGIRO.info("getPortfolio: " + data);
             DRawPortfolio rawPortfolio = gson.fromJson(data, DRawPortfolio.class);
             portfolioLastUpdate = rawPortfolio.getPortfolio().getLastUpdated();
             portfolio = DUtils.convert(rawPortfolio, currency);
@@ -600,6 +601,7 @@ public class DeGiroImpl implements DeGiro {
         this.currency = currency;
     }
 
+
     private class DPriceTimerTask extends TimerTask {
 
         @Override
@@ -613,4 +615,7 @@ public class DeGiroImpl implements DeGiro {
 
     }
 
+    public boolean isConnected() {
+        return !Strings.isNullOrEmpty(session.getJSessionId());
+    }
 }

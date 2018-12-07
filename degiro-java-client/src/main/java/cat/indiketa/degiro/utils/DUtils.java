@@ -138,12 +138,12 @@ public class DUtils {
                 String methodName = "set" + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, value.getName());
 
                 switch (value.getName()) {
-                    case "id":
                     case "size":
                     case "contractSize":
                         long longValue = Double.valueOf(value.getValue().toString()).longValue();
                         DPortfolioProduct.class.getMethod(methodName, long.class).invoke(productRow, longValue);
                         break;
+                    case "id":
                     case "product":
                     case "currency":
                     case "exchangeBriefCode":
@@ -662,4 +662,7 @@ public class DUtils {
         }
     }
 
+    public static boolean isNumeric(String strNum) {
+        return strNum.matches("\\d+");
+    }
 }

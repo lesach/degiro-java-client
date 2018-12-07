@@ -15,6 +15,7 @@ import cat.indiketa.degiro.model.DProductDescription;
 import cat.indiketa.degiro.model.DProductDescriptions;
 import cat.indiketa.degiro.session.DPersistentSession;
 import cat.indiketa.degiro.utils.DCredentials;
+import cat.indiketa.degiro.utils.DUtils;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.eventbus.AsyncEventBus;
@@ -31,6 +32,7 @@ import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -42,7 +44,7 @@ public class DEngine {
     private final DeGiro degiro;
     private DEngineConfig config;
 
-    private final Map<Long, Product> productMap;
+    private final Map<String, Product> productMap;
     private final Map<String, Product> productMapByIssue;
 
     private Timer portfolioTimer;
@@ -163,24 +165,28 @@ public class DEngine {
 
     private void fetchDescriptions() throws DeGiroException {
 
-        List<Long> productIds = new LinkedList<>();
+        List<String> productIds = new LinkedList<>();
         for (Product product : productMap.values()) {
-            if (product.getId() != 0) {
+            if (!product.getId().isEmpty() && product.getId().equals("0")) {
                 productIds.add(product.getId());
             }
         }
 
         if (!productIds.isEmpty()) {
             DLog.ENGINE.info("Fetching " + productIds.size() + " product descriptions");
-            DProductDescriptions descriptions = degiro.getProducts(productIds);
+            DProductDescriptions descriptions = degiro.getProducts(productIds
+                    .stream()
+                    .filter(DUtils::isNumeric)
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList()));
             Map<Long, DProductDescription> data = descriptions.getData();
             List<String> vwdIssueId = new LinkedList<>();
             for (Long productId : data.keySet()) {
                 DProductDescription description = data.get(productId);
-                productMap.get(productId).adopt(description);
+                productMap.get(productId.toString()).adopt(description);
                 if (!Strings.isNullOrEmpty(description.getVwdId())) {
-                    productMapByIssue.put(description.getVwdId(), productMap.get(productId));
-                    if (productMap.get(productId).getQty() != 0) {
+                    productMapByIssue.put(description.getVwdId(), productMap.get(productId.toString()));
+                    if (productMap.get(productId.toString()).getQty() != 0) {
                         vwdIssueId.add(description.getVwdId());
                     }
                 }

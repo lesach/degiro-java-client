@@ -1,6 +1,7 @@
 package io.trading.model;
 
 import cat.indiketa.degiro.model.*;
+import cat.indiketa.degiro.session.DSession;
 import io.trading.provider.ConnectionProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,6 +63,18 @@ public class Context {
         connection = new ConnectionProvider(username, password);
         portfolioSummary = connection.getPortfolioSummary();
         return portfolioSummary != null;
+    }
+
+    /**
+     * return session state
+     * @return session state
+     */
+    public boolean isConnected() {
+        if (connection == null)
+            return false;
+        else
+            return connection.isConnected();
+
     }
 
     /**

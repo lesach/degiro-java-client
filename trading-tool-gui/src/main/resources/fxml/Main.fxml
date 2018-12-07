@@ -38,7 +38,6 @@
                                  </padding>
                               </Label>
                               <Button fx:id="btnConnect" layoutX="267.0" layoutY="25.0" mnemonicParsing="false" onAction="#handleConnectButtonAction" text="Connect" AnchorPane.leftAnchor="260.0" AnchorPane.topAnchor="20.0" />
-                              <Circle fx:id="shpConnected" fill="RED" radius="19.0" stroke="BLACK" strokeType="INSIDE" AnchorPane.leftAnchor="380.0" AnchorPane.topAnchor="10.0" />
                            </children>
                         </AnchorPane>
                      </content>
@@ -127,6 +126,9 @@
               </tabs>
             </TabPane>
          </content>
+         <graphic>
+            <Circle fx:id="shpConnected" fill="RED" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
+         </graphic>
       </TitledPane>
       <TitledPane collapsible="false" text="Orders" GridPane.rowIndex="2">
          <content>
@@ -142,6 +144,9 @@
               </columns>
             </TableView>
          </content>
+         <graphic>
+            <Circle fx:id="shpOrders" fill="RED" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
+         </graphic>
       </TitledPane>
       <TitledPane collapsible="false" text="Positions" GridPane.rowIndex="1">
          <content>
@@ -162,6 +167,9 @@
               </columns>
             </TableView>
          </content>
+         <graphic>
+            <Circle fx:id="shpPositions" fill="RED" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
+         </graphic>
       </TitledPane>
       <TitledPane collapsible="false" maxHeight="1.7976931348623157E308" text="Products" GridPane.rowIndex="3">
          <content>
@@ -210,6 +218,9 @@
          <GridPane.margin>
             <Insets />
          </GridPane.margin>
+         <graphic>
+            <Circle fx:id="shpProducts" fill="RED" radius="6.0" stroke="BLACK" strokeType="INSIDE" />
+         </graphic>
       </TitledPane>
    </children>
 </GridPane>

@@ -13,7 +13,7 @@ import java.util.Date;
 
 
 public class ProductSchema {
-    private final SimpleLongProperty productId;
+    private final SimpleStringProperty productId;
     private final SimpleStringProperty productName;
     private final SimpleStringProperty currency;
     // Direct
@@ -36,7 +36,7 @@ public class ProductSchema {
      * Basic Constructor
      */
     public ProductSchema() {
-        this(-1l,
+        this("-1",
                 "",
                 0d,
                 0d,
@@ -71,7 +71,7 @@ public class ProductSchema {
      * @param isin
      * @param tradable
      */
-    public ProductSchema(Long id,
+    public ProductSchema(String id,
                          String name,
                          Double bid,
                          Double ask,
@@ -86,7 +86,7 @@ public class ProductSchema {
                          String symbol,
                          String isin,
                          Boolean tradable) {
-        this.productId = new SimpleLongProperty(id);
+        this.productId = new SimpleStringProperty(id);
         this.productName = new SimpleStringProperty(name);
         this.bid = new SimpleDoubleProperty(bid);
         this.ask = new SimpleDoubleProperty(ask);
@@ -103,7 +103,6 @@ public class ProductSchema {
         this.tradable = new SimpleBooleanProperty(tradable);
     }
 
-
     /**
      * Update product prices
      * @param prod new price
@@ -119,6 +118,9 @@ public class ProductSchema {
             if (prod.getLast() != null) {
                 setLast(prod.getLast());
             }
+            if (prod.getLastTime() != null) {
+                setLastTime(prod.getLastTime().getTime());
+            }
             setPriceTime(new Date().getTime());
         }
     }
@@ -130,7 +132,7 @@ public class ProductSchema {
      */
     public void adopt(DProductDescription prod) {
         if (prod != null) {
-            setProductId(prod.getId());
+            setProductId(Long.toString(prod.getId()));
             setProductName(prod.getName());
             setIsin(prod.getIsin());
             setCurrency(prod.getCurrency());
@@ -186,15 +188,15 @@ public class ProductSchema {
     }
 
 
-    public long getProductId() {
+    public String getProductId() {
         return productId.get();
     }
 
-    public SimpleLongProperty productIdProperty() {
+    public SimpleStringProperty productIdProperty() {
         return productId;
     }
 
-    public void setProductId(long id) {
+    public void setProductId(String id) {
         this.productId.set(id);
     }
 

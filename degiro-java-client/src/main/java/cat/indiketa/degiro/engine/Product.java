@@ -35,7 +35,7 @@ public class Product {
 
     private final transient DEngine engine;
 
-    protected long id; //
+    protected String id; //
     protected String name; //
     protected long qty; //
     protected BigDecimal price; //
@@ -170,11 +170,11 @@ public class Product {
         engine.getEventBus().post(new DProductChanged(this));
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -325,7 +325,7 @@ public class Product {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 67 * hash + (int) (this.id ^ (this.id >>> 32));
+        hash = 67 * hash + Objects.hashCode(this.id);
         hash = 67 * hash + (int) (this.qty ^ (this.qty >>> 32));
         hash = 67 * hash + Objects.hashCode(this.price);
         hash = 67 * hash + Objects.hashCode(this.value);
