@@ -220,7 +220,38 @@
                         <Rectangle fx:id="lblCallProductPriceTimeRectangle" fill="#ff2121" height="20.0" layoutX="224.0" layoutY="233.0" opacity="0.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="170.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="190.0" />
                      </children>
                   </AnchorPane>
-                  <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" />
+                  <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" >
+                      <children>
+                          <Label fx:id="lblPutProductIsin" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="90.0" />
+                          <Label text="ISIN" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="90.0" />
+                          <Label contentDisplay="CENTER" text="TURBO PUT" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="5.0" />
+                          <TextField fx:id="txtPutProductSearch" AnchorPane.leftAnchor="60.0" AnchorPane.topAnchor="30.0" />
+                          <Label text="Search" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="35.0" />
+                          <Button fx:id="btnPutProductSearch" mnemonicParsing="false" onAction="#handlePutProductSearchButtonAction" text="Search" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="30.0" />
+                          <Label layoutX="32.0" layoutY="93.0" text="Product" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="70.0" />
+                          <Label fx:id="lblPutProductName" layoutX="42.0" layoutY="103.0" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="70.0" />
+                          <Label fx:id="lblPutProductAsk" layoutX="197.0" layoutY="190.0" prefWidth="60.0" styleClass="ask-text" text="..." AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="190.0" />
+                          <Label layoutX="192.0" layoutY="170.0" text="Ask" AnchorPane.leftAnchor="220.0" AnchorPane.topAnchor="170.0" />
+                          <Label layoutX="254.0" layoutY="170.0" text="Bid" AnchorPane.leftAnchor="300.0" AnchorPane.topAnchor="170.0" />
+                          <Label fx:id="lblPutProductBid" layoutX="259.0" layoutY="190.0" prefWidth="60.0" styleClass="bid-text" text="..." AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="190.0" />
+                          <Label fx:id="lblPutProductTime" layoutX="5.0" layoutY="149.0" prefHeight="15.0" prefWidth="170.0" style="-fx-alignment: center;" text="YYY/MM/DD HH:MM:SS" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="190.0" />
+                          <Label layoutX="34.0" layoutY="178.0" text="Time" AnchorPane.leftAnchor="45.0" AnchorPane.topAnchor="170.0" />
+                          <Label layoutX="200.0" layoutY="109.0" text="Last Value" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="109.0" />
+                          <Label fx:id="lblPutProductLastValue" layoutX="280.0" layoutY="109.0" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="109.0" />
+                          <Label fx:id="lblPutProductLastTime" layoutX="280.0" layoutY="129.0" text="..." AnchorPane.leftAnchor="80.0" AnchorPane.topAnchor="129.0" />
+                          <Label layoutX="200.0" layoutY="129.0" text="Last Time" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="129.0" />
+                          <Button fx:id="btnPutProductBuy" disable="true" mnemonicParsing="false" onAction="#handlePutProductBuyButtonAction" text="Buy" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+                          <Label layoutX="42.0" layoutY="103.0" text="Quantity" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="5.0" />
+                          <Label text="Amount" AnchorPane.bottomAnchor="75.0" AnchorPane.leftAnchor="5.0" />
+                          <TextField fx:id="txtPutProductBuyAmount" disable="true" AnchorPane.bottomAnchor="70.0" AnchorPane.leftAnchor="70.0" />
+                          <Label fx:id="lblPutProductBuyQuantity" layoutX="52.0" layoutY="113.0" text="..." AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="70.0" />
+                          <Label fx:id="lblPutProductBuyTotal" layoutX="62.0" layoutY="123.0" text="..." AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="320.0" />
+                          <Label layoutX="52.0" layoutY="113.0" text="Total" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="250.0" />
+                          <Rectangle fx:id="lblPutProductAskRectangle" fill="#ff2121" height="20.0" layoutX="204.0" layoutY="213.0" opacity="0.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="60.0" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="190.0" />
+                          <Rectangle fx:id="lblPutProductBidRectangle" fill="#ff2121" height="20.0" layoutX="214.0" layoutY="223.0" opacity="0.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="60.0" AnchorPane.leftAnchor="280.0" AnchorPane.topAnchor="190.0" />
+                          <Rectangle fx:id="lblPutProductPriceTimeRectangle" fill="#ff2121" height="20.0" layoutX="224.0" layoutY="233.0" opacity="0.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="170.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="190.0" />
+                      </children>
+                  </AnchorPane>
                </children>
             </GridPane>
          </content>

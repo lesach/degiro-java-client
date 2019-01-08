@@ -65,15 +65,32 @@ public class MainController implements Initializable {
     private InputOrder callOrder = new InputOrder();
 
 
+    // Put product tab
+    private ProductSchema putProductSchema;
+    private ProductSchema getPutProductSchema() {
+        return putProductSchema;
+    }
+    private void setPutProductSchema(ProductSchema putProductSchema) {
+        if (this.putProductSchema != null) {
+            bindPutProduct(false);
+        }
+        this.putProductSchema = putProductSchema;
+        if (this.putProductSchema != null) {
+            bindPutProduct(true);
+        }
+        subscriptionProvider.manageSubscription();
+    }
+    private InputOrder putOrder = new InputOrder();
+
     // Table viex
     private final ObservableList<PositionTableViewSchema> positionsData = FXCollections.observableArrayList(PositionTableViewSchema.extractor());
-    PositionsScheduledService positionsScheduledService;
+    private PositionsScheduledService positionsScheduledService;
 
     private final ObservableList<OrderTableViewSchema> ordersData = FXCollections.observableArrayList(OrderTableViewSchema.extractor());
-    OrdersScheduledService ordersScheduledService;
+    private OrdersScheduledService ordersScheduledService;
 
     private final Sanity sanity = new Sanity();
-    SanityScheduledService sanityScheduledService;
+    private SanityScheduledService sanityScheduledService;
 
 
     // Credentials pane
@@ -91,26 +108,40 @@ public class MainController implements Initializable {
     @FXML private TextField txtVariation;
 
     // Turbo Call pane
+    private static final Duration HIGHLIGHT_TIME = Duration.millis(500);
     @FXML private TextField txtCallProductSearch;
     @FXML private Button btnCallProductSearch;
     @FXML private Label lblCallProductName;
     @FXML private Label lblCallProductIsin;
-    private static final Duration HIGHLIGHT_TIME = Duration.millis(500);
     @FXML private Rectangle lblCallProductAskRectangle;
     @FXML private Label lblCallProductAsk;
-    private FadeTransition lblCallProductAskRectangleAnimation;
     @FXML private Label lblCallProductBid;
     @FXML private Rectangle lblCallProductBidRectangle;
-    private FadeTransition lblCallProductBidRectangleAnimation;
     @FXML private Label lblCallProductTime;
     @FXML private Rectangle lblCallProductPriceTimeRectangle;
-    private FadeTransition lblCallProductPriceTimeRectangleAnimation;
     @FXML private Label lblCallProductLastValue;
     @FXML private Label lblCallProductLastTime;
     @FXML private Button btnCallProductBuy;
     @FXML private Label lblCallProductBuyQuantity;
     @FXML private Label lblCallProductBuyTotal;
     @FXML private TextField txtCallProductBuyAmount;
+    // Put
+    @FXML private TextField txtPutProductSearch;
+    @FXML private Button btnPutProductSearch;
+    @FXML private Label lblPutProductName;
+    @FXML private Label lblPutProductIsin;
+    @FXML private Rectangle lblPutProductAskRectangle;
+    @FXML private Label lblPutProductAsk;
+    @FXML private Label lblPutProductBid;
+    @FXML private Rectangle lblPutProductBidRectangle;
+    @FXML private Label lblPutProductTime;
+    @FXML private Rectangle lblPutProductPriceTimeRectangle;
+    @FXML private Label lblPutProductLastValue;
+    @FXML private Label lblPutProductLastTime;
+    @FXML private Button btnPutProductBuy;
+    @FXML private Label lblPutProductBuyQuantity;
+    @FXML private Label lblPutProductBuyTotal;
+    @FXML private TextField txtPutProductBuyAmount;
     @FXML private Circle shpProducts;
 
     // Position Table
@@ -141,14 +172,13 @@ public class MainController implements Initializable {
     @FXML TableColumn<OrderTableViewSchema, Double> colOrderQuantity;
     @FXML TableColumn<OrderTableViewSchema, String> colOrderCurrency;
     @FXML TableColumn<OrderTableViewSchema, String> colOrderDelete;
-    @FXML TableColumn<PositionTableViewSchema, String> colOrderAsk;
-    @FXML TableColumn<PositionTableViewSchema, String> colOrderBid;
-    @FXML TableColumn<PositionTableViewSchema, String> colOrderPriceTime;
+    @FXML TableColumn<OrderTableViewSchema, String> colOrderAsk;
+    @FXML TableColumn<OrderTableViewSchema, String> colOrderBid;
+    @FXML TableColumn<OrderTableViewSchema, String> colOrderPriceTime;
     @FXML private Circle shpOrders;
 
 
     @Override
-    @SuppressWarnings("unchecked")
     public void initialize(URL location, ResourceBundle resources) {
         logger.info("Controller loading...");
         // Positions table
@@ -272,15 +302,9 @@ public class MainController implements Initializable {
             }
         });
 
-
-        colPositionAsk.setCellValueFactory(new PropertyValueFactory<>("ask"));
-        colPositionAsk.setCellFactory(c -> new FlashingTableCell<>(null, Pos.CENTER_RIGHT));
-
-        colPositionBid.setCellValueFactory(new PropertyValueFactory<>("bid"));
-        colPositionBid.setCellFactory(c -> new FlashingTableCell<>(null, Pos.CENTER_RIGHT));
-
-        colPositionPriceTime.setCellValueFactory(new PropertyValueFactory<>("priceTime"));
-        colPositionPriceTime.setCellFactory(c -> new FlashingTableCell<>(null, Pos.CENTER_RIGHT));
+        setPositionTableCellFlashing(colPositionAsk, "ask");
+        setPositionTableCellFlashing(colPositionBid, "bid");
+        setPositionTableCellFlashing(colPositionPriceTime, "priceTime");
 
         positionsScheduledService = new PositionsScheduledService(context, positionsData);
         positionsScheduledService.setPeriod(Duration.seconds(30));
@@ -385,19 +409,18 @@ public class MainController implements Initializable {
                 subscriptionProvider.getProducts(),
                 subscriptionProvider.getSubscribedProducts(),
                 callProductSchema,
+                putProductSchema,
                 sanity);
         sanityScheduledService.setPeriod(Duration.seconds(30));
-        sanityScheduledService.setOnSucceeded((WorkerStateEvent t) -> {
-            logger.info("Sanity check refreshed");
-        });
+        sanityScheduledService.setOnSucceeded((WorkerStateEvent t) -> logger.info("Sanity check refreshed"));
 
         // Label animations on price refresh
-        lblCallProductAskRectangleAnimation = new FadeTransition(HIGHLIGHT_TIME, lblCallProductAskRectangle);
-        lblCallProductAsk.textProperty().addListener((observable) -> flashLabel(lblCallProductAskRectangleAnimation));
-        lblCallProductBidRectangleAnimation = new FadeTransition(HIGHLIGHT_TIME, lblCallProductAskRectangle);
-        lblCallProductBid.textProperty().addListener((observable) -> flashLabel(lblCallProductBidRectangleAnimation));
-        lblCallProductPriceTimeRectangleAnimation = new FadeTransition(HIGHLIGHT_TIME, lblCallProductPriceTimeRectangle);
-        lblCallProductTime.textProperty().addListener((observable) -> flashLabel(lblCallProductPriceTimeRectangleAnimation));
+        setLabelFlashingAnimation(lblCallProductAskRectangle, lblCallProductAsk);
+        setLabelFlashingAnimation(lblCallProductBidRectangle, lblCallProductBid);
+        setLabelFlashingAnimation(lblCallProductPriceTimeRectangle, lblCallProductTime);
+        setLabelFlashingAnimation(lblPutProductAskRectangle, lblPutProductAsk);
+        setLabelFlashingAnimation(lblPutProductBidRectangle, lblPutProductBid);
+        setLabelFlashingAnimation(lblPutProductPriceTimeRectangle, lblPutProductTime);
 
         // Initialize credentials
         txtUser.setText(AppConfig.getDegiroUserName());
@@ -405,35 +428,44 @@ public class MainController implements Initializable {
 
         // Color binding: Connected
         ObjectBinding<Paint> connectedBinding = Bindings.createObjectBinding(() -> booleanToPaint(sanity.connectedProperty().get()), sanity.connectedProperty());
-        connectedBinding.addListener((observable, oldValue, newValue) -> {
-            logger.info("Connected binding changed from " + oldValue + " to " + newValue);
-        });
+        connectedBinding.addListener((observable, oldValue, newValue) -> logger.info("Connected binding changed from " + oldValue + " to " + newValue));
         shpConnected.fillProperty().bind(connectedBinding);
 
         // Color binding: Positions
         ObjectBinding<Paint> positionsPriceRefreshPropertyBinding = Bindings.createObjectBinding(() -> booleanToPaint(sanity.positionsPriceRefreshProperty().get()), sanity.positionsPriceRefreshProperty());
-        positionsPriceRefreshPropertyBinding.addListener((observable, oldValue, newValue) -> {
-            logger.info("Positions Price Refresh binding changed from " + oldValue + " to " + newValue);
-        });
+        positionsPriceRefreshPropertyBinding.addListener((observable, oldValue, newValue) -> logger.info("Positions Price Refresh binding changed from " + oldValue + " to " + newValue));
         shpPositions.fillProperty().bind(positionsPriceRefreshPropertyBinding);
 
         // Color binding: Orders
         ObjectBinding<Paint> ordersPriceRefreshPropertyBinding = Bindings.createObjectBinding(() -> booleanToPaint(sanity.ordersPriceRefreshProperty().get()), sanity.ordersPriceRefreshProperty());
-        ordersPriceRefreshPropertyBinding.addListener((observable, oldValue, newValue) -> {
-            logger.info("Orders Price Refresh binding changed from " + oldValue + " to " + newValue);
-        });
+        ordersPriceRefreshPropertyBinding.addListener((observable, oldValue, newValue) -> logger.info("Orders Price Refresh binding changed from " + oldValue + " to " + newValue));
         shpOrders.fillProperty().bind(ordersPriceRefreshPropertyBinding);
 
         // Color binding: Products
         ObjectBinding<Paint> productsPriceRefreshPropertyBinding = Bindings.createObjectBinding(() -> booleanToPaint(sanity.productsPriceRefreshProperty().get()), sanity.productsPriceRefreshProperty());
-        productsPriceRefreshPropertyBinding.addListener((observable, oldValue, newValue) -> {
-            logger.info("Products Price Refresh binding changed from " + oldValue + " to " + newValue);
-        });
+        productsPriceRefreshPropertyBinding.addListener((observable, oldValue, newValue) -> logger.info("Products Price Refresh binding changed from " + oldValue + " to " + newValue));
         shpProducts.fillProperty().bind(productsPriceRefreshPropertyBinding);
 
-
+        // Search button enable
+        btnCallProductSearch.disableProperty().bind(Bindings.isEmpty(txtCallProductSearch.textProperty()));
+        btnPutProductSearch.disableProperty().bind(Bindings.isEmpty(txtPutProductSearch.textProperty()));
+        btnConnect.disableProperty().bind(Bindings.isEmpty(txtUser.textProperty()).or(Bindings.isEmpty(txtPassword.textProperty())));
         sanityScheduledService.start();
+
         logger.info("Controller is now loaded");
+    }
+
+    /**
+     * Destroy context
+     */
+    public void close() {
+        logger.info("Controller is closing...");
+        if (positionsScheduledService.isRunning())
+            positionsScheduledService.cancel();
+        if (ordersScheduledService.isRunning())
+            ordersScheduledService.cancel();
+        if (sanityScheduledService.isRunning())
+            sanityScheduledService.cancel();
     }
 
     /**
@@ -523,7 +555,7 @@ public class MainController implements Initializable {
      * @param event trigger
      */
     @FXML protected void handleConnectButtonAction(ActionEvent event) {
-        logger.info("Connect button pressed");
+        logger.info("Connect button pressed (" + event.getEventType().getName() + ")");
         if (checkCredentials()) {
             context.setUsername(txtUser.getText());
             context.setPassword(txtPassword.getText());
@@ -568,57 +600,62 @@ public class MainController implements Initializable {
         return checkEmptyTextField(txtCallProductSearch);
     }
 
+
+    /**
+     * Check if product name is not empty
+     * @return true if OK
+     */
+    private boolean checkPutProductSearch() {
+        return checkEmptyTextField(txtPutProductSearch);
+    }
+
     /**
      * Fill Call panel
      */
     private void bindCallProduct(boolean bind) {
-        if (bind) {
-            // ProductSchema
-            lblCallProductName.textProperty().bindBidirectional(callProductSchema.productNameProperty());
-            lblCallProductIsin.textProperty().bindBidirectional(callProductSchema.isinProperty());
-            lblCallProductAsk.textProperty().bindBidirectional(callProductSchema.askProperty(), new NumberStringConverter());
-            lblCallProductBid.textProperty().bindBidirectional(callProductSchema.bidProperty(), new NumberStringConverter());
-            lblCallProductLastValue.textProperty().bindBidirectional(callProductSchema.lastProperty(), new NumberStringConverter());
-            lblCallProductLastTime.textProperty().bindBidirectional(callProductSchema.lastTimeProperty(), new LongDateStringConverter());
-            btnCallProductBuy.disableProperty().bind(callProductSchema.tradableProperty().not());
-            txtCallProductBuyAmount.disableProperty().bind(callProductSchema.tradableProperty().not());
-            lblCallProductTime.textProperty().bindBidirectional(callProductSchema.priceTimeProperty(), new LongDateStringConverter());
-            // Order
-            txtCallProductBuyAmount.textProperty().bindBidirectional(callOrder.amountProperty(), new NumberStringConverter());
-            callOrder.priceProperty().bind(callProductSchema.askProperty());
-            lblCallProductBuyQuantity.textProperty().bind(callOrder.quantityProperty().asString());
-            lblCallProductBuyTotal.textProperty().bind(callOrder.totalProperty().asString());
-        }
-        else {
-            // ProductSchema
-            btnCallProductBuy.disableProperty().unbind();
-            txtCallProductBuyAmount.disableProperty().unbind();
-            lblCallProductName.textProperty().unbindBidirectional(callProductSchema.productNameProperty());
-            lblCallProductIsin.textProperty().unbindBidirectional(callProductSchema.isinProperty());
-            lblCallProductAsk.textProperty().unbindBidirectional(callProductSchema.askProperty());
-            lblCallProductBid.textProperty().unbindBidirectional(callProductSchema.bidProperty());
-            lblCallProductLastValue.textProperty().unbindBidirectional(callProductSchema.lastProperty());
-            lblCallProductLastTime.textProperty().unbindBidirectional(callProductSchema.priceTimeProperty());
-            lblCallProductTime.textProperty().unbindBidirectional(callProductSchema.priceTimeProperty());
-            txtCallProductBuyAmount.setDisable(true);
-            btnCallProductBuy.setDisable(true);
-            // Order
-            callOrder.priceProperty().unbind();
-            Platform.runLater(() -> callOrder.setPrice(0d));
-            txtCallProductBuyAmount.textProperty().unbindBidirectional(callOrder.amountProperty());
-            lblCallProductBuyQuantity.textProperty().unbindBidirectional(callOrder.quantityProperty());
-            lblCallProductBuyTotal.textProperty().unbindBidirectional(callOrder.totalProperty());
-            lblCallProductBuyQuantity.setText("0");
-        }
+        bindProduct(bind,
+            lblCallProductName,
+            lblCallProductIsin,
+            lblCallProductAsk,
+            lblCallProductBid,
+            lblCallProductLastValue,
+            lblCallProductLastTime,
+            btnCallProductBuy,
+            txtCallProductBuyAmount,
+            lblCallProductTime,
+            lblCallProductBuyQuantity,
+            lblCallProductBuyTotal,
+            callOrder,
+            callProductSchema);
     }
 
+
+    /**
+     * Fill Put panel
+     */
+    private void bindPutProduct(boolean bind) {
+        bindProduct(bind,
+                lblPutProductName,
+                lblPutProductIsin,
+                lblPutProductAsk,
+                lblPutProductBid,
+                lblPutProductLastValue,
+                lblPutProductLastTime,
+                btnPutProductBuy,
+                txtPutProductBuyAmount,
+                lblPutProductTime,
+                lblPutProductBuyQuantity,
+                lblPutProductBuyTotal,
+                putOrder,
+                putProductSchema);
+    }
 
     /**
      * Search Call product
      * @param event trigger
      */
     @FXML protected void handleCallProductSearchButtonAction(ActionEvent event) {
-        logger.info("Call ProductSchema Search button pressed");
+        logger.info("Call ProductSchema Search button pressed (" + event.getEventType().getName() + ")");
         setCallProductSchema(null);
         callOrder.setProductId(0L);
         if (checkCallProductSearch()) {
@@ -636,7 +673,7 @@ public class MainController implements Initializable {
      * @param event trigger
      */
     @FXML protected void handleCallProductBuyButtonAction(ActionEvent event) {
-        logger.info("Call ProductSchema Buy button pressed");
+        logger.info("Call ProductSchema Buy button pressed (" + event.getEventType().getName() + ")");
         if (this.getCallProductSchema() != null) {
             if (this.getCallProductSchema().isTradable())
             {
@@ -677,6 +714,68 @@ public class MainController implements Initializable {
 
 
     /**
+     * Search Put product
+     * @param event trigger
+     */
+    @FXML protected void handlePutProductSearchButtonAction(ActionEvent event) {
+        logger.info("Put ProductSchema Search button pressed (" + event.getEventType().getName() + ")");
+        setPutProductSchema(null);
+        putOrder.setProductId(0L);
+        if (checkPutProductSearch()) {
+            List<DProductDescription> descriptions = this.context.searchProducts(txtPutProductSearch.getText());
+            if (descriptions != null && descriptions.size() == 1) {
+                subscriptionProvider.mergeDescriptionProducts(descriptions);
+                setPutProductSchema(subscriptionProvider.getProducts().get(Long.toString(descriptions.get(0).getId())));
+                putOrder.setProductId(descriptions.get(0).getId());
+            }
+        }
+    }
+
+    /**
+     * Create an order to Buy Put ProductSchema
+     * @param event trigger
+     */
+    @FXML protected void handlePutProductBuyButtonAction(ActionEvent event) {
+        logger.info("Put ProductSchema Buy button pressed (" + event.getEventType().getName() + ")");
+        if (this.getPutProductSchema() != null) {
+            if (this.getPutProductSchema().isTradable())
+            {
+                logger.info("Creating Buy order");
+                // Generate a new order. Signature:
+                // public DNewOrder(DOrderAction action, DOrderType orderType, DOrderTime timeType, long productId, long size, BigDecimal limitPrice, BigDecimal stopPrice)
+                if (AppConfig.getTest()) {
+                    OrderTableViewSchema order = new OrderTableViewSchema(
+                            "Order1",
+                            DOrderAction.SELL.toString(),
+                            getPutProductSchema().getProductName(),
+                            DOrderType.LIMITED.toString(),
+                            Format.parseBigDecimal(lblPutProductAsk.getText()).doubleValue(),
+                            "EUR",
+                            Long.parseLong(lblPutProductBuyQuantity.getText())
+                    );
+                    ordersData.add(order);
+                }
+                else {
+                    DNewOrder order = new DNewOrder(DOrderAction.SELL,
+                            DOrderType.LIMITED,
+                            DOrderTime.DAY,
+                            Long.parseLong(getPutProductSchema().getProductId()),
+                            Long.parseLong(lblPutProductBuyQuantity.getText()),
+                            Format.parseBigDecimal(lblPutProductAsk.getText()),
+                            null);
+                    sendOrder(order);
+                }
+            }
+            else{
+                logger.info("The put product has to be Tradable");
+            }
+        }
+        else {
+            logger.info("A put product has to be selected");
+        }
+    }
+
+    /**
      * Send order
      * @param order to send
      */
@@ -698,4 +797,80 @@ public class MainController implements Initializable {
         return false;
     }
 
+    /**
+     * Set flashing cell
+     * @param column to set
+     * @param propertyName to bind
+     */
+    private void setPositionTableCellFlashing(TableColumn<PositionTableViewSchema, String> column, String propertyName) {
+        column.setCellValueFactory(new PropertyValueFactory<>(propertyName));
+        column.setCellFactory(c -> new FlashingTableCell<>(null, Pos.CENTER_RIGHT));
+    }
+
+    /**
+     * Set Label flashing animation
+     * @param rectangle to flash
+     * @param label attached
+     */
+    private void setLabelFlashingAnimation(Rectangle rectangle, Label label) {
+        FadeTransition transition = new FadeTransition(HIGHLIGHT_TIME, rectangle);
+        label.textProperty().addListener((observable) -> flashLabel(transition));
+    }
+
+    /**
+     * Fill Put panel
+     */
+    private void bindProduct(boolean bind,
+                             Label lblProductName,
+                             Label lblProductIsin,
+                             Label lblProductAsk,
+                             Label lblProductBid,
+                             Label lblProductLastValue,
+                             Label lblProductLastTime,
+                             Button btnProductBuy,
+                             TextField txtProductBuyAmount,
+                             Label lblProductTime,
+                             Label lblProductBuyQuantity,
+                             Label lblProductBuyTotal,
+                             InputOrder order,
+                             ProductSchema productSchema) {
+        if (bind) {
+            // ProductSchema
+            lblProductName.textProperty().bindBidirectional(productSchema.productNameProperty());
+            lblProductIsin.textProperty().bindBidirectional(productSchema.isinProperty());
+            lblProductAsk.textProperty().bindBidirectional(productSchema.askProperty(), new NumberStringConverter());
+            lblProductBid.textProperty().bindBidirectional(productSchema.bidProperty(), new NumberStringConverter());
+            lblProductLastValue.textProperty().bindBidirectional(productSchema.lastProperty(), new NumberStringConverter());
+            lblProductLastTime.textProperty().bindBidirectional(productSchema.lastTimeProperty(), new LongDateStringConverter());
+            btnProductBuy.disableProperty().bind(productSchema.tradableProperty().not());
+            txtProductBuyAmount.disableProperty().bind(productSchema.tradableProperty().not());
+            lblProductTime.textProperty().bindBidirectional(productSchema.priceTimeProperty(), new LongDateStringConverter());
+            // Order
+            txtProductBuyAmount.textProperty().bindBidirectional(order.amountProperty(), new NumberStringConverter());
+            order.priceProperty().bind(productSchema.askProperty());
+            lblProductBuyQuantity.textProperty().bind(order.quantityProperty().asString());
+            lblProductBuyTotal.textProperty().bind(order.totalProperty().asString());
+        }
+        else {
+            // ProductSchema
+            btnProductBuy.disableProperty().unbind();
+            txtProductBuyAmount.disableProperty().unbind();
+            lblProductName.textProperty().unbindBidirectional(productSchema.productNameProperty());
+            lblProductIsin.textProperty().unbindBidirectional(productSchema.isinProperty());
+            lblProductAsk.textProperty().unbindBidirectional(productSchema.askProperty());
+            lblProductBid.textProperty().unbindBidirectional(productSchema.bidProperty());
+            lblProductLastValue.textProperty().unbindBidirectional(productSchema.lastProperty());
+            lblProductLastTime.textProperty().unbindBidirectional(productSchema.priceTimeProperty());
+            lblProductTime.textProperty().unbindBidirectional(productSchema.priceTimeProperty());
+            txtProductBuyAmount.setDisable(true);
+            btnProductBuy.setDisable(true);
+            // Order
+            order.priceProperty().unbind();
+            Platform.runLater(() -> order.setPrice(0d));
+            txtProductBuyAmount.textProperty().unbindBidirectional(order.amountProperty());
+            lblProductBuyQuantity.textProperty().unbindBidirectional(order.quantityProperty());
+            lblProductBuyTotal.textProperty().unbindBidirectional(order.totalProperty());
+            lblProductBuyQuantity.setText("0");
+        }
+    }
 }

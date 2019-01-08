@@ -1,5 +1,6 @@
 package io.trading;
 
+import io.trading.controller.MainController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,7 +17,7 @@ import java.net.URL;
  */
 public class Main extends Application {
     private static final Logger logger = LogManager.getLogger(Main.class);
-
+    private static MainController controller;
     /**
      * Entry point
      * @param args none expected
@@ -32,7 +33,9 @@ public class Main extends Application {
             // Load FXML file path
             final URL url = getClass().getResource("/fxml/Main.fxml");
             // Loader creation
-            final Parent root = FXMLLoader.load(url);
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            final Parent root = fxmlLoader.load(url.openStream());
+            controller = fxmlLoader.getController();
             primaryStage.setTitle("Trading Tool");
             final Scene scene = new Scene(root);
             scene.getStylesheets().add("/css/main.css");
@@ -47,5 +50,7 @@ public class Main extends Application {
     @Override
     public void stop(){
         logger.info("Stage is closing");
+        controller.close();
+        logger.info("Stage is closed");
     }
 }

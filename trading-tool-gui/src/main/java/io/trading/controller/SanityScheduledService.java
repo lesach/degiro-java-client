@@ -26,6 +26,7 @@ public class SanityScheduledService extends ScheduledService<Sanity> {
     private final List<String> subscribedProducts;
     private final Context context;
     private final ProductSchema callProduct;
+    private final ProductSchema putProduct;
     private Sanity sanity;
     /**
      * Constructor
@@ -41,6 +42,7 @@ public class SanityScheduledService extends ScheduledService<Sanity> {
                            Map<String, ProductSchema> products,
                            List<String> subscribedProducts,
                            ProductSchema callProduct,
+                           ProductSchema putProduct,
                            Sanity sanity) {
         this.context = context;
         this.ordersData = ordersData;
@@ -48,6 +50,7 @@ public class SanityScheduledService extends ScheduledService<Sanity> {
         this.products = products;
         this.subscribedProducts = subscribedProducts;
         this.callProduct = callProduct;
+        this.putProduct = putProduct;
         this.sanity = sanity;
     }
 
