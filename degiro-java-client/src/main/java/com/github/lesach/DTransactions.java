@@ -1,0 +1,108 @@
+package com.github.lesach;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+/**
+ *
+ * @author indiketa
+ */
+public class DTransactions {
+
+    private List<DTransaction> data = null;
+    private long status;
+    private String statusText;
+
+    public List<DTransaction> getData() {
+        return data;
+    }
+
+    public void setData(List<DTransaction> data) {
+        this.data = data;
+    }
+
+    public long getStatus() {
+        return status;
+    }
+
+    public void setStatus(long status) {
+        this.status = status;
+    }
+
+    public String getStatusText() {
+        return statusText;
+    }
+
+    public void setStatusText(String statusText) {
+        this.statusText = statusText;
+    }
+
+    public static class DTransaction {
+
+        private long id;
+        private long productId;
+        private String date;
+        private DOrderAction buysell;
+        private BigDecimal price;
+        private long quantity;
+        private BigDecimal total;
+
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
+        }
+
+        public long getProductId() {
+            return productId;
+        }
+
+        public void setProductId(long productId) {
+            this.productId = productId;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public void setDate(String date) {
+            this.date = date;
+        }
+
+        public DOrderAction getBuysell() {
+            return buysell;
+        }
+
+        public void setBuysell(DOrderAction buysell) {
+            this.buysell = buysell;
+        }
+
+        public BigDecimal getPrice() {
+            return price;
+        }
+
+        public void setPrice(BigDecimal price) {
+            this.price = price;
+        }
+
+        public long getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(long quantity) {
+            this.quantity = quantity;
+        }
+
+        public BigDecimal getTotal() {
+            return total;
+        }
+
+        public void setTotal(BigDecimal total) {
+            this.total = total;
+        }
+
+    }
+
+}
