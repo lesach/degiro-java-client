@@ -56,9 +56,9 @@ public class ADX extends IndicatorCalculatorBase<ADXSerie>
         }
 
         //DMIp <- ifelse( dH==dL | (dH< 0 & dL< 0), 0, ifelse( dH >dL, dH, 0 ) )
-        List<BigDecimal> DMIPositives = new ArrayList<>() {{ add(null); }};
+        List<BigDecimal> DMIPositives = new ArrayList<BigDecimal>() {{ add(null); }};
         // DMIn <- ifelse( dH==dL | (dH< 0 & dL< 0), 0, ifelse( dH <dL, dL, 0 ) )
-        List<BigDecimal> DMINegatives = new ArrayList<>() {{ add(null); }};
+        List<BigDecimal> DMINegatives = new ArrayList<BigDecimal>() {{ add(null); }};
         for (int i = 1; i < OhlcList.size(); i++)
         {
             if (highMomentums.get(i).equals(lowMomentums.get(i)) || (highMomentums.get(i).compareTo(BigDecimal.ZERO) < 0 & lowMomentums.get(i).compareTo(BigDecimal.ZERO) < 0))

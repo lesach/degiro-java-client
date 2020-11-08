@@ -2,7 +2,7 @@ package com.github.lesach.controller;
 
 import com.github.lesach.*;
 import com.google.gson.GsonBuilder;
-import com.github.lesach.config.AppConfig;
+import com.github.lesach.config.UIConfig;
 import com.github.lesach.display.FlashingTableCell;
 import com.github.lesach.display.LongDateStringConverter;
 import com.github.lesach.tableview.BasicSchema;
@@ -31,24 +31,35 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.util.converter.BigDecimalStringConverter;
+import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.net.URL;
 import java.util.*;
 
+@Component
+@Qualifier("MainController")
 public class MainController implements Initializable {
+
+    @Autowired
+    private UIConfig UIConfig;
+
     private static final Logger logger = LogManager.getLogger(MainController.class);
 
     private final Context context = new Context();
+
+    @Getter
     private final SubscriptionProvider subscriptionProvider = new SubscriptionProvider(context);
 
     // Call product tab
+    @Getter
     private ProductSchema callProductSchema;
-    private ProductSchema getCallProductSchema() {
-        return callProductSchema;
-    }
     private void setCallProductSchema(ProductSchema callProductSchema) {
         if (this.callProductSchema != null) {
             bindCallProduct(false);
@@ -63,10 +74,8 @@ public class MainController implements Initializable {
 
 
     // Put product tab
+    @Getter
     private ProductSchema putProductSchema;
-    private ProductSchema getPutProductSchema() {
-        return putProductSchema;
-    }
     private void setPutProductSchema(ProductSchema putProductSchema) {
         if (this.putProductSchema != null) {
             bindPutProduct(false);
@@ -79,16 +88,18 @@ public class MainController implements Initializable {
     }
     private InputOrder putOrder = new InputOrder();
 
-    // Table viex
+    // Table view
+    @Getter
     private final ObservableList<PositionTableViewSchema> positionsData = FXCollections.observableArrayList(PositionTableViewSchema.extractor());
     private PositionsScheduledService positionsScheduledService;
 
+    @Getter
     private final ObservableList<OrderTableViewSchema> ordersData = FXCollections.observableArrayList(OrderTableViewSchema.extractor());
     private OrdersScheduledService ordersScheduledService;
 
+    @Getter
     private final Sanity sanity = new Sanity();
     private SanityScheduledService sanityScheduledService;
-
 
     // Credentials pane
     @FXML private TextField txtUser;
@@ -397,14 +408,6 @@ public class MainController implements Initializable {
 
 
         // Check
-        sanityScheduledService = new SanityScheduledService(context,
-                ordersData,
-                positionsData,
-                subscriptionProvider.getProducts(),
-                subscriptionProvider.getSubscribedProducts(),
-                callProductSchema,
-                putProductSchema,
-                sanity);
         sanityScheduledService.setPeriod(Duration.seconds(30));
         sanityScheduledService.setOnSucceeded((WorkerStateEvent t) -> logger.info("Sanity check refreshed"));
 
@@ -417,8 +420,8 @@ public class MainController implements Initializable {
         setLabelFlashingAnimation(lblPutProductPriceTimeRectangle, lblPutProductTime);
 
         // Initialize credentials
-        txtUser.setText(AppConfig.getDegiroUserName());
-        txtPassword.setText(AppConfig.getDegiroPassword());
+        txtUser.setText(UIConfig.getDegiroUserName());
+        txtPassword.setText(UIConfig.getDegiroPassword());
 
         // Color binding: Connected
         ObjectBinding<Paint> connectedBinding = Bindings.createObjectBinding(() -> booleanToPaint(sanity.connectedProperty().get()), sanity.connectedProperty());
@@ -551,8 +554,6 @@ public class MainController implements Initializable {
     @FXML protected void handleConnectButtonAction(ActionEvent event) {
         logger.info("Connect button pressed (" + event.getEventType().getName() + ")");
         if (checkCredentials()) {
-            context.setUsername(txtUser.getText());
-            context.setPassword(txtPassword.getText());
             if (context.Connect()) {
                 txtUser.getStyleClass().remove("error");
                 txtPassword.getStyleClass().remove("error");
@@ -674,7 +675,7 @@ public class MainController implements Initializable {
                 logger.info("Creating Buy order");
                 // Generate a new order. Signature:
                 // public DNewOrder(DOrderAction action, DOrderType orderType, DOrderTime timeType, long productId, long size, BigDecimal limitPrice, BigDecimal stopPrice)
-                if (AppConfig.getTest()) {
+                if (UIConfig.getTest()) {
                     OrderTableViewSchema order = new OrderTableViewSchema(
                             "Order1",
                             DOrderAction.SELL.toString(),
@@ -737,7 +738,7 @@ public class MainController implements Initializable {
                 logger.info("Creating Buy order");
                 // Generate a new order. Signature:
                 // public DNewOrder(DOrderAction action, DOrderType orderType, DOrderTime timeType, long productId, long size, BigDecimal limitPrice, BigDecimal stopPrice)
-                if (AppConfig.getTest()) {
+                if (UIConfig.getTest()) {
                     OrderTableViewSchema order = new OrderTableViewSchema(
                             "Order1",
                             DOrderAction.SELL.toString(),

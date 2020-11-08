@@ -1,7 +1,7 @@
 package com.github.lesach.controller;
 
 import com.github.lesach.DPortfolioProducts;
-import com.github.lesach.config.AppConfig;
+import com.github.lesach.config.UIConfig;
 import com.github.lesach.Context;
 import com.github.lesach.tableview.PositionTableViewSchema;
 import com.github.lesach.utils.Format;
@@ -9,12 +9,18 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
 public class PositionsScheduledService extends ScheduledService<ObservableList<PositionTableViewSchema>> {
+
+    @Autowired
+    private UIConfig UIConfig;
+
     private final Context context;
+
     private final ObservableList<PositionTableViewSchema> positionsData;
 
     PositionsScheduledService(Context context,
@@ -31,7 +37,7 @@ public class PositionsScheduledService extends ScheduledService<ObservableList<P
         return new Task<ObservableList<PositionTableViewSchema>>(){
             @Override
             protected ObservableList<PositionTableViewSchema> call() {
-                if (AppConfig.getTest()) {
+                if (UIConfig.getTest()) {
                     FilteredList<PositionTableViewSchema> list = positionsData.filtered(t -> t.getId().equals("123456"));
                     PositionTableViewSchema s;
                     if (list.isEmpty()) {

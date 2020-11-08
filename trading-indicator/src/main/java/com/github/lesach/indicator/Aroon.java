@@ -24,8 +24,8 @@ import java.math.MathContext;
         @Override
         public  AroonSerie Calculate()
         {
-            var aroonSerie = new AroonSerie();
-            for (var i = 0; i < OhlcList.size(); i++)
+            AroonSerie aroonSerie = new AroonSerie();
+            for (int i = 0; i < OhlcList.size(); i++)
             {
                 if (i >= Period)
                 {
@@ -47,16 +47,16 @@ import java.math.MathContext;
 
         private BigDecimal CalculateAroonUp(int i)
         {
-            var maxIndex = FindMax(i - Period, i);
+            int maxIndex = FindMax(i - Period, i);
 
-            var up = CalcAroon(i - maxIndex);
+            BigDecimal up = CalcAroon(i - maxIndex);
 
             return up;
         }
 
         private BigDecimal CalculateAroonDown(int i)
         {
-            var minIndex = FindMin(i - Period, i);
+            int minIndex = FindMin(i - Period, i);
 
             BigDecimal down = CalcAroon(i - minIndex);
 
@@ -72,8 +72,8 @@ import java.math.MathContext;
         private int FindMin(int startIndex, int endIndex)
         {
             BigDecimal min = BigDecimal.valueOf(Double.MAX_VALUE);
-            var index = startIndex;
-            for (var i = startIndex; i <= endIndex; i++)
+            int index = startIndex;
+            for (int i = startIndex; i <= endIndex; i++)
             {
                 if (min.compareTo(OhlcList.get(i).Low) < 0)
                     continue;
@@ -87,8 +87,8 @@ import java.math.MathContext;
         private int FindMax(int startIndex, int endIndex)
         {
             BigDecimal max = BigDecimal.valueOf(Double.MIN_VALUE);
-            var index = startIndex;
-            for (var i = startIndex; i <= endIndex; i++)
+            int index = startIndex;
+            for (int i = startIndex; i <= endIndex; i++)
             {
                 if (max.compareTo(OhlcList.get(i).High) > 0)
                     continue;

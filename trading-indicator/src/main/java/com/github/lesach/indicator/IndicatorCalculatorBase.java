@@ -6,8 +6,9 @@ import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public abstract class IndicatorCalculatorBase<T>
     public List<Ohlc> OhlcList;
 
     public void Load(String path) throws IOException, CsvException {
-        Reader reader = Files.newBufferedReader(Path.of(path));
+        Reader reader = Files.newBufferedReader(Paths.get(URI.create(path)));
         CSVReader csvReader = new CSVReader(reader);
         List<String[]> list = csvReader.readAll();
         if (!list.isEmpty()) {

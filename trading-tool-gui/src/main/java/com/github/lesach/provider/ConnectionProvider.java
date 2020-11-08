@@ -1,20 +1,21 @@
 package com.github.lesach.provider;
 
 import com.github.lesach.*;
-import com.github.lesach.*;
-import com.github.lesach.session.DPersistentSession;
-import com.github.lesach.utils.DCredentials;
-import com.github.lesach.config.AppConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Service
 public class ConnectionProvider {
     private static final Logger logger = LogManager.getLogger(ConnectionProvider.class);
-    private final DeGiroClient degiro = DeGiroClient.getInstance();
+
+    @Autowired
+    private DeGiroClientInterface deGiroClient;
 
     /**
      * Constructor
@@ -23,13 +24,12 @@ public class ConnectionProvider {
 
     }
 
-
     /**
      * return session state
      * @return session state
      */
     public boolean isConnected() {
-         return degiro.IsConnected();
+         return deGiroClient.IsConnected();
     }
 
     /**
@@ -37,7 +37,7 @@ public class ConnectionProvider {
      * @param listener listener
      */
     public void addPriceListener(DPriceListener listener) {
-        degiro.AddPriceListener(listener);
+        deGiroClient.AddPriceListener(listener);
     }
 
 
@@ -47,7 +47,7 @@ public class ConnectionProvider {
      */
     public void subscribeToPrice(String vwdId) {
         try {
-            degiro.SubscribeToPrice(vwdId);
+            deGiroClient.SubscribeToPrice(vwdId);
         }
         catch (Exception e){
             logger.error("ERROR in subscribeToPrice", e);
@@ -59,14 +59,14 @@ public class ConnectionProvider {
      * @param vwdId Ids list
      */
     public void unsubscribeToPrice(String vwdId) {
-        degiro.UnsubscribeToPrice(vwdId);
+        deGiroClient.UnsubscribeToPrice(vwdId);
     }
 
     /**
      * Clear watch list
      */
     public void clearPriceSubscriptions() {
-        degiro.ClearPriceSubscriptions();
+        deGiroClient.ClearPriceSubscriptions();
     }
 
     /**
@@ -75,7 +75,7 @@ public class ConnectionProvider {
      */
     public DPortfolioSummary getPortfolioSummary() {
         try {
-            return this.degiro.GetPortfolioSummary();
+            return this.deGiroClient.GetPortfolioSummary();
         }
         catch (Exception e) {
             logger.error("ERROR in getPortfolioSummary", e);
@@ -90,7 +90,7 @@ public class ConnectionProvider {
      */
     public List<DProductDescription> searchProducts(String text) {
         try {
-            DProductSearch search = this.degiro.SearchProducts(text, DProductType.ALL, 10, 0);
+            DProductSearch search = this.deGiroClient.SearchProducts(text, DProductType.ALL, 10, 0);
             return search.getProducts();
         }
         catch (Exception e) {
@@ -105,7 +105,7 @@ public class ConnectionProvider {
      */
     public DPortfolioProducts getPortfolio() {
         try {
-            return this.degiro.getPortfolio();
+            return this.deGiroClient.getPortfolio();
         }
         catch (Exception e) {
             logger.error("ERROR in getPortfolio", e);
@@ -120,7 +120,7 @@ public class ConnectionProvider {
      */
     public List<DOrder> getOrders() {
         try {
-            return this.degiro.getOrders();
+            return this.deGiroClient.getOrders();
         }
         catch (Exception e) {
             logger.error("ERROR in getOrders", e);
@@ -135,7 +135,7 @@ public class ConnectionProvider {
      */
     public DOrderConfirmation checkOrder(DNewOrder order ) {
         try {
-            return this.degiro.checkOrder(order);
+            return this.deGiroClient.checkOrder(order);
         }
         catch (Exception e) {
             logger.error("ERROR in checkOrder", e);
@@ -149,7 +149,7 @@ public class ConnectionProvider {
      */
     public DPlacedOrder confirmOrder(DNewOrder order, DOrderConfirmation confirmation) {
         try {
-            return this.degiro.confirmOrder(order, confirmation.getConfirmationId());
+            return this.deGiroClient.confirmOrder(order, confirmation.getConfirmationId());
         }
         catch (Exception e) {
             logger.error("ERROR in confirmOrder", e);
@@ -164,7 +164,7 @@ public class ConnectionProvider {
      */
     public DPlacedOrder deleteOrder(String orderId) {
         try {
-            return this.degiro.deleteOrder(orderId);
+            return this.deGiroClient.deleteOrder(orderId);
         }
         catch (Exception e) {
             logger.error("ERROR in deleteOrder", e);
@@ -182,7 +182,7 @@ public class ConnectionProvider {
         HashMap<Long, String> result = new HashMap<>();
         try {
             if (!productIds.isEmpty()) {
-                DProductDescriptions descriptions = this.degiro.getProducts(productIds);
+                DProductDescriptions descriptions = this.deGiroClient.getProducts(productIds);
                 Map<Long, DProductDescription> data = descriptions.getData();
                 for (Long productId : data.keySet()) {
                     DProductDescription description = data.get(productId);

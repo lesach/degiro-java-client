@@ -1,6 +1,7 @@
 package com.github.lesach.controller;
 
-import com.github.lesach.config.AppConfig;
+import com.github.lesach.TradingContext;
+import com.github.lesach.config.UIConfig;
 import com.github.lesach.Context;
 import com.github.lesach.Sanity;
 import com.github.lesach.tableview.OrderTableViewSchema;
@@ -9,49 +10,60 @@ import com.github.lesach.tableview.ProductSchema;
 import javafx.collections.ObservableList;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
+import javafx.fxml.Initializable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class SanityScheduledService extends ScheduledService<Sanity> {
-    private static final Logger logger = LogManager.getLogger(SanityScheduledService.class);
+@Component
+public class SanityScheduledService extends ScheduledService<Sanity> implements InitializingBean {
 
-    private final int priceRefreshThreshold = AppConfig.getPriceRefreshErrorThreshold();
-    private final ObservableList<OrderTableViewSchema> ordersData;
-    private final ObservableList<PositionTableViewSchema> positionsData;
-    private final Map<String, ProductSchema> products;
-    private final List<String> subscribedProducts;
-    private final Context context;
-    private final ProductSchema callProduct;
-    private final ProductSchema putProduct;
+    @Autowired
+    private UIConfig uiConfig;
+
+    private static final Logger logger = LogManager.getLogger(SanityScheduledService.class);
+    private int priceRefreshThreshold;
+
+    private ObservableList<OrderTableViewSchema> ordersData;
+    private ObservableList<PositionTableViewSchema> positionsData;
+    private Map<String, ProductSchema> products;
+    private List<String> subscribedProducts;
+
+    @Autowired
+    private TradingContext context;
+
+    private ProductSchema callProduct;
+    private ProductSchema putProduct;
     private Sanity sanity;
-    /**
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        priceRefreshThreshold = uiConfig.getPriceRefreshErrorThreshold();
+        MainController tmp = (MainController) mainController;
+        this.ordersData = tmp.getOrdersData();
+        this.positionsData = tmp.getPositionsData();
+        this.products = tmp.getSubscriptionProvider().getProducts();
+        this.subscribedProducts = tmp.getSubscriptionProvider().getSubscribedProducts();
+        this.callProduct = tmp.getCallProductSchema();
+        this.putProduct = tmp.getPutProductSchema();
+        this.sanity = tmp.getSanity();
+    }
+
+    @Autowired
+    @Qualifier("MainController")
+    private Initializable mainController;
+     /**
      * Constructor
-     * @param context Displayed context
-     * @param ordersData Displayed orders
-     * @param positionsData Displayed positions
-     * @param products All used products
-     * @param subscribedProducts Subscribed product
      */
-    SanityScheduledService(Context context,
-                           ObservableList<OrderTableViewSchema> ordersData,
-                           ObservableList<PositionTableViewSchema> positionsData,
-                           Map<String, ProductSchema> products,
-                           List<String> subscribedProducts,
-                           ProductSchema callProduct,
-                           ProductSchema putProduct,
-                           Sanity sanity) {
-        this.context = context;
-        this.ordersData = ordersData;
-        this.positionsData = positionsData;
-        this.products = products;
-        this.subscribedProducts = subscribedProducts;
-        this.callProduct = callProduct;
-        this.putProduct = putProduct;
-        this.sanity = sanity;
+    SanityScheduledService() {
+
     }
 
     /**
@@ -91,4 +103,5 @@ public class SanityScheduledService extends ScheduledService<Sanity> {
             }
         };
     }
+
 }

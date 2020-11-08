@@ -1,16 +1,21 @@
 package com.github.lesach;
 
+import com.github.lesach.config.UIConfig;
 import com.github.lesach.provider.ConnectionProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-public class Context {
+@Component
+public class Context implements TradingContext{
     private static final Logger logger = LogManager.getLogger(Context.class);
 
-    private String username;
-    private String password;
+    @Autowired
+    private UIConfig uiConfig;
+
     private ConnectionProvider connection = null;
 
     public DPortfolioSummary getPortfolioSummary() {
@@ -20,19 +25,11 @@ public class Context {
     private DPortfolioSummary portfolioSummary;
 
     public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
+        return uiConfig.getDegiroUserName();
     }
 
     public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+        return uiConfig.getDegiroPassword();
     }
 
 

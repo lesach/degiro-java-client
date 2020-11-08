@@ -1,18 +1,23 @@
 package com.github.lesach.controller;
 
 import com.github.lesach.DOrder;
-import com.github.lesach.config.AppConfig;
+import com.github.lesach.config.UIConfig;
 import com.github.lesach.Context;
 import com.github.lesach.tableview.OrderTableViewSchema;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public class OrdersScheduledService extends ScheduledService<ObservableList<OrderTableViewSchema>> {
+
+    @Autowired
+    private UIConfig UIConfig;
+
     private final ObservableList<OrderTableViewSchema> ordersData;
     private final Context context;
 
@@ -30,7 +35,7 @@ public class OrdersScheduledService extends ScheduledService<ObservableList<Orde
         return new Task<ObservableList<OrderTableViewSchema>>(){
             @Override
             protected ObservableList<OrderTableViewSchema> call() {
-                if (AppConfig.getTest()) {
+                if (UIConfig.getTest()) {
                     FilteredList<OrderTableViewSchema> list = ordersData.filtered(t -> t.getId().equals("123456Id"));
                     OrderTableViewSchema s;
                     if (list.isEmpty()) {

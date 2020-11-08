@@ -1,0 +1,22 @@
+package com.github.lesach.client.engine.json;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
+import java.io.IOException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
+public class LocalTimeSerializer  extends StdSerializer<LocalTime> {
+    protected LocalTimeSerializer() {
+        super(LocalTime.class);
+    }
+
+    @Override
+    public void serialize(
+            LocalTime value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException {
+        jgen.writeString(value.format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+    }
+}

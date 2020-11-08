@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /// <summary>
     /// Commodity Channel Index (CCI)

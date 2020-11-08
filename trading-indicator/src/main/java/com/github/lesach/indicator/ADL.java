@@ -17,7 +17,7 @@ public class ADL extends IndicatorCalculatorBase<SingleDoubleSerie>
     public  SingleDoubleSerie Calculate()
     {
         SingleDoubleSerie adlSerie = new SingleDoubleSerie();
-        for (var ohlc : OhlcList)
+        for (Ohlc ohlc : OhlcList)
         {
             BigDecimal value = ((ohlc.Close.subtract(ohlc.Low)).subtract(ohlc.High.subtract(ohlc.Close))
                     .divide(ohlc.High.subtract(ohlc.Low), MathContext.DECIMAL64)

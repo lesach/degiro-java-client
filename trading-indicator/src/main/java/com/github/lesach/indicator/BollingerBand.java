@@ -54,7 +54,8 @@ import java.math.MathContext;
                     BigDecimal stdev = totalSquares
                             .subtract(totalAverage.pow(2)
                                     .divide(BigDecimal.valueOf(Period), MathContext.DECIMAL64)
-                                    .divide(BigDecimal.valueOf(Period), MathContext.DECIMAL64)).sqrt(MathContext.DECIMAL64);
+                                    .divide(BigDecimal.valueOf(Period), MathContext.DECIMAL64))
+                            .sqrt(MathContext.DECIMAL64);
 
                     bollingerBandSerie.MidBand.add(average);
                     BigDecimal up = average.add(BigDecimal.valueOf(Factor).multiply(stdev));

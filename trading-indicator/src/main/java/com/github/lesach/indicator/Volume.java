@@ -7,7 +7,7 @@ package com.github.lesach.indicator;
         {
             SingleDoubleSerie volumeSerie = new SingleDoubleSerie();
 
-            for (var item : OhlcList)
+            for (Ohlc item : OhlcList)
             {
                 volumeSerie.Values.add(item.Volume);
             }
