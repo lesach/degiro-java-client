@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 
 public class BigDecimalDeserializer extends StdDeserializer<BigDecimal> {
 
-    protected BigDecimalDeserializer() {
+    public BigDecimalDeserializer() {
         super(BigDecimal.class);
     }
 

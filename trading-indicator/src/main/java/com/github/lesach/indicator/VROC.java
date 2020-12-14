@@ -29,9 +29,9 @@ public class VROC extends IndicatorCalculatorBase<SingleDoubleSerie>
         {
             if (i >= this.Period)
             {
-                rocSerie.Values.add(OhlcList.get(i).Volume
-                        .subtract(OhlcList.get(i - this.Period).Volume)
-                        .divide(OhlcList.get(i - this.Period).Volume, MathContext.DECIMAL64)
+                rocSerie.Values.add(OhlcList.get(i).getVolume()
+                        .subtract(OhlcList.get(i - this.Period).getVolume())
+                        .divide(OhlcList.get(i - this.Period).getVolume(), MathContext.DECIMAL64)
                         .multiply(BigDecimal.valueOf(100)));
             }
             else

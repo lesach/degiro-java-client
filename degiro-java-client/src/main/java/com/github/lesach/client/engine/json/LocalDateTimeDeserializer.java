@@ -11,13 +11,18 @@ import java.time.format.DateTimeFormatter;
 
 public class LocalDateTimeDeserializer extends StdDeserializer<LocalDateTime> {
 
-    protected LocalDateTimeDeserializer() {
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    public LocalDateTimeDeserializer() {
         super(LocalDateTime.class);
     }
 
     @Override
     public LocalDateTime deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException, JsonProcessingException {
-        return LocalDateTime.parse(jp.readValueAs(String.class), DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss"));
+        String s = jp.readValueAs(String.class);
+        if (s != null)
+            s = s.replace('T', ' ');
+        return LocalDateTime.parse(s, dateTimeFormatter);
     }
 }

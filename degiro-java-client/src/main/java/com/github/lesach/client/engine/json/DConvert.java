@@ -10,26 +10,6 @@ import java.time.LocalDateTime;
 public class DConvert
 {
 
-    static public ObjectMapper getObjectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer());
-        module.addDeserializer(BigDecimal.class, new BigDecimalDeserializer());
-        module.addDeserializer(DOrderAction.class, new DOrderActionDeserializer());
-        module.addDeserializer(DOrderTime.class, new DOrderTimeDeserializer());
-        module.addDeserializer(DOrderType.class, new DOrderTypeDeserializer());
-        module.addDeserializer(DProductType.class, new DProductTypeDeserializer());
-        module.addDeserializer(DPriceHistorySerieData.class, new DPriceHistorySerieDataDeserializer());
-        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer());
-        module.addSerializer(BigDecimal.class, new BigDecimalSerializer());
-        module.addSerializer(DOrderAction.class, new DOrderActionSerializer());
-        module.addSerializer(DOrderTime.class, new DOrderTimeSerializer());
-        module.addSerializer(DOrderType.class, new DOrderTypeSerializer());
-        module.addSerializer(DProductType.class, new DProductTypeSerializer());
-        mapper.registerModule(module);
-        return mapper;
-    }
-
     static public DProductType getDProductType(long value)
     {
         switch ((int) value) {

@@ -179,11 +179,11 @@ public enum ETimeSerieResolutionType {
 
         return m.entrySet().stream()
                 .map(e -> new Ohlc() {{
-                    Date = e.getKey();
-                    Close = e.getValue().stream().map(MeasureModel::getValue).reduce(BigDecimal.ZERO, BigDecimal::add)
-                            .divide(BigDecimal.valueOf(e.getValue().size()), MathContext.DECIMAL64);
-                    High = e.getValue().stream().map(MeasureModel::getValue).max(BigDecimal::compareTo).orElse(null);
-                    Low = e.getValue().stream().map(MeasureModel::getValue).min(BigDecimal::compareTo).orElse(null);
+                    setDate(e.getKey());
+                    setClose(e.getValue().stream().map(MeasureModel::getValue).reduce(BigDecimal.ZERO, BigDecimal::add)
+                            .divide(BigDecimal.valueOf(e.getValue().size()), MathContext.DECIMAL64));
+                    setHigh(e.getValue().stream().map(MeasureModel::getValue).max(BigDecimal::compareTo).orElse(null));
+                    setLow(e.getValue().stream().map(MeasureModel::getValue).min(BigDecimal::compareTo).orElse(null));
                 }})
                 .collect(Collectors.toList());
 

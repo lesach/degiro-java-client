@@ -1,5 +1,6 @@
 package com.github.lesach.strategy;
 
+
 public enum EPeriodInstantType {
     NULL(-1, "NULL"),
     Start(0, "Start"),

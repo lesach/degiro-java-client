@@ -39,10 +39,10 @@ public  SingleDoubleSerie Calculate()
 
             for (int i = 0; i < OhlcList.size(); i++)
             {
-                BigDecimal moneyFlowMultiplier = ((OhlcList.get(i).Close.subtract(OhlcList.get(i).Low)).subtract(OhlcList.get(i).High.subtract(OhlcList.get(i).Close)))
-                        .divide((OhlcList.get(i).High.subtract(OhlcList.get(i).Low)), MathContext.DECIMAL64);
+                BigDecimal moneyFlowMultiplier = ((OhlcList.get(i).getClose().subtract(OhlcList.get(i).getLow())).subtract(OhlcList.get(i).getHigh().subtract(OhlcList.get(i).getClose())))
+                        .divide((OhlcList.get(i).getHigh().subtract(OhlcList.get(i).getLow())), MathContext.DECIMAL64);
                 
-                moneyFlowVolumeList.add(moneyFlowMultiplier.multiply(OhlcList.get(i).Volume));
+                moneyFlowVolumeList.add(moneyFlowMultiplier.multiply(OhlcList.get(i).getVolume()));
 
                 if (i >= Period - 1)
                 {
@@ -50,7 +50,7 @@ public  SingleDoubleSerie Calculate()
                     for (int j = i; j >= i - (Period - 1); j--)
                     {
                         sumOfMoneyFlowVolume = sumOfMoneyFlowVolume.add(moneyFlowVolumeList.get(j));
-                        sumOfVolume = sumOfVolume.add(OhlcList.get(j).Volume);
+                        sumOfVolume = sumOfVolume.add(OhlcList.get(j).getVolume());
                     }
                     cmfSerie.Values.add(sumOfMoneyFlowVolume.divide(sumOfVolume, MathContext.DECIMAL64));
                 }

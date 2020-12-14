@@ -4,12 +4,17 @@ import com.github.lesach.client.DClient;
 import com.github.lesach.client.DConfig;
 import com.google.gson.annotations.Expose;
 import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
 /**
  *
  * @author indiketa
  */
+@Getter
+@Setter
 public class DSession {
 
     @Expose
@@ -22,22 +27,6 @@ public class DSession {
     protected long lastVwdSessionUsed;
     @Expose
     protected List<BasicClientCookie> cookies;
-
-    public DConfig getConfig() {
-        return config;
-    }
-
-    public DClient getClient() {
-        return client;
-    }
-
-    public String getVwdSession() {
-        return vwdSession;
-    }
-
-    public List<BasicClientCookie> getCookies() {
-        return cookies;
-    }
 
     public String getJSessionId() {
         String value = null;
@@ -61,30 +50,6 @@ public class DSession {
         client = null;
         vwdSession = null;
         cookies = null;
-    }
-
-    public void setConfig(DConfig config) {
-        this.config = config;
-    }
-
-    public void setClient(DClient client) {
-        this.client = client;
-    }
-
-    public void setVwdSession(String vwdSession) {
-        this.vwdSession = vwdSession;
-    }
-
-    public void setCookies(List<BasicClientCookie> cookies) {
-        this.cookies = cookies;
-    }
-
-    public long getLastVwdSessionUsed() {
-        return lastVwdSessionUsed;
-    }
-
-    public void setLastVwdSessionUsed(long lastVwdSessionUsed) {
-        this.lastVwdSessionUsed = lastVwdSessionUsed;
     }
 
 }

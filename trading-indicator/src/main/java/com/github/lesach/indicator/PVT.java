@@ -19,9 +19,9 @@ public class PVT extends IndicatorCalculatorBase<SingleDoubleSerie>
 
         for (int i = 1; i < OhlcList.size(); i++)
         {
-            pvtSerie.Values.add((((OhlcList.get(i).Close
-                    .subtract(OhlcList.get(i - 1).Close))
-                    .divide(OhlcList.get(i - 1).Close).multiply(OhlcList.get(i).Volume)).add(pvtSerie.Values.get(i - 1))));
+            pvtSerie.Values.add((((OhlcList.get(i).getClose()
+                    .subtract(OhlcList.get(i - 1).getClose()))
+                    .divide(OhlcList.get(i - 1).getClose()).multiply(OhlcList.get(i).getVolume())).add(pvtSerie.Values.get(i - 1))));
         }
 
         return pvtSerie;

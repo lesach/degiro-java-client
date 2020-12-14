@@ -5,31 +5,20 @@
  */
 package com.github.lesach.client;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 
 /**
  *
  * @author indiketa
  */
+@Getter
+@Setter
 public class DProductSearch {
-
+    private int total;
     private int offset;
     private List<DProductDescription> products;
-
-    public int getOffset() {
-        return offset;
-    }
-
-    public void setOffset(int offset) {
-        this.offset = offset;
-    }
-
-    public List<DProductDescription> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<DProductDescription> products) {
-        this.products = products;
-    }
 
 }

@@ -30,7 +30,7 @@ public class ADX extends IndicatorCalculatorBase<ADXSerie>
         for (int i = 0; i < OhlcList.size(); i++)
         {
             int finalI = i;
-            Ohlc tempOhlc = new Ohlc() {{ Close = OhlcList.get(finalI).High; }};
+            Ohlc tempOhlc = new Ohlc() {{ setClose(OhlcList.get(finalI).getHigh()); }};
             tempOhlcList.add(tempOhlc);
         }
         Momentum momentum = new Momentum();
@@ -41,7 +41,7 @@ public class ADX extends IndicatorCalculatorBase<ADXSerie>
         for (int i = 0; i < OhlcList.size(); i++)
         {
             int finalI = i;
-            Ohlc tempOhlc = new Ohlc() {{ Close = OhlcList.get(finalI).Low; }};
+            Ohlc tempOhlc = new Ohlc() {{ setClose(OhlcList.get(finalI).getLow()); }};
             tempOhlcList.add(tempOhlc);
         }
         momentum = new Momentum();
@@ -153,11 +153,11 @@ public class ADX extends IndicatorCalculatorBase<ADXSerie>
         {
             if (DX.get(i)  != null)
             {
-                OhlcList.get(i).Close = DX.get(i);
+                OhlcList.get(i).setClose(DX.get(i));
             }
             else
             {
-                OhlcList.get(i).Close = BigDecimal.ZERO;
+                OhlcList.get(i).setClose(BigDecimal.ZERO);
             }
         }
 

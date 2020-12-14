@@ -9,7 +9,7 @@ package com.github.lesach.indicator;
 
             for (Ohlc item : OhlcList)
             {
-                volumeSerie.Values.add(item.Volume);
+                volumeSerie.Values.add(item.getVolume());
             }
 
             return volumeSerie;

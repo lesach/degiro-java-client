@@ -43,7 +43,7 @@ public interface StrategyEngineInterface
     /// <summary>
     /// Initialize series for the engine
     /// </summary>
-    void InitializeSeries(LocalDateTime start, LocalDateTime end) throws CloneNotSupportedException;
+    void InitializeSeries(LocalDateTime start, LocalDateTime end) throws CloneNotSupportedException, DeGiroException;
 
     /// <summary>
     /// Add product indicator if not exists
@@ -78,7 +78,7 @@ public interface StrategyEngineInterface
     /// <param name="computationMargin"></param>
     /// <param name="start"></param>
     /// <param name="end"></param>
-    void InitializeSimulation(LocalDateTime start, LocalDateTime end) throws CloneNotSupportedException;
+    void InitializeSimulation(LocalDateTime start, LocalDateTime end) throws CloneNotSupportedException, DeGiroException;
 
     /// <summary>
     /// Return the strategy reference

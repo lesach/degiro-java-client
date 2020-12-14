@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="search">
+    <h3>Strategy Selection</h3>
+    <form class="form-row">
+        <div class="col-4">
+            <div class="md-form mb-0">
+                <input class="col form-control" type="text" id="txt-strategy-name" name="strategy-name" list="strategy-name-list"/>
+                <label for="txt-strategy-name" >Strategy</label>
+                <datalist id="strategy-name-list">
+                </datalist>
+                <input class="btn btn-outline-info rounded-pill btn-block my-4 waves-effect z-depth-0" type="button" id="btn-strategy" value="Add Strategy"/>
+<script>
+$(function() {
+    $("#btn-strategy").prop("disabled", true);
+
+    $("#btn-strategy").click(function(e) {
+        e.preventDefault();
+        $("#btn-strategy").prop("disabled", true);
+        var value = $("#txt-strategy-name").val();
+        if (value.length >= 3) {
+            var el = $("strategy-parameter-indicator-list").find("*[value='" + value + "']");
+            if (el.length == 0) {
+                var search = {};
+                search["strategy"] = value;
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(search),
+                    dataType: 'json',
+                    cache: false,
+                    timeout: 600000,
+                    url: "/quote/addstrategy",
+                    success: function(result) {
+                        $("#btn-strategy").prop("disabled", (result.length > 0));
+                        $("#strategy-name-list").empty();
+                        for(var i=0;i<result.length;i++)
+                        {
+                            $("#strategy-name-list").append("<option data-id='" + result[i].key + "' value='" + result[i].value + "'" +
+                                ">" + result[i].value + "</option>");
+                        }
+                    },
+                    error: function(result) {
+                        // Nothing to do
+                        $("#btn-strategy").prop("disabled", true);
+                    },
+                    complete: function(result) {
+
+                    }
+                });
+            }
+        }
+    });
+
+
+    $("#txt-strategy-name").on("input", function () {
+        var value = $("#txt-strategy-name").val();
+        $("#btn-strategy").prop("disabled", true);
+        if (value.length >= 3) {
+            var search = {};
+            search["strategy"] = value;
+            $.ajax({
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(search),
+                dataType: 'json',
+                cache: false,
+                timeout: 600000,
+                url: "/quote/searchstrategies",
+                success: function(result) {
+                    $("#btn-strategy").prop("disabled", (result.length > 0));
+                    $("#strategy-name-list").empty();
+                    for(var i=0;i<result.length;i++)
+                    {
+                        $("#strategy-name-list").append("<option data-id='" + result[i].key + "' value='" + result[i].value + "'" +
+                            ">" + result[i].value + "</option>");
+                    }
+                },
+                error: function(result) {
+                    // Nothing to do
+                    $("#btn-strategy").prop("disabled", true);
+                },
+                complete: function(result) {
+
+                }
+            });
+        }
+    });
+});
+</script>
+            </div>
+        </div>
+    </form>
+    <h3>Strategy Trigger</h3>
+    <form class="form-row">
+        <div class="col-4">
+            <div class="md-form mb-0">
+                <input class="col form-control trigger-param" type="text" id="txt-strategy-period-instant-type" name="period-instant-type" list="period-instant-type-list"/>
+                <label for="txt-strategy-period-instant-type">Instant</label>
+                <datalist id="period-instant-type-list">
+                    <option th:each="row : ${periodInstantTypeList}"
+                            th:value="${row.key.strValue}" th:label="${row.key.strValue}" th:data-json="${row.value}">
+                </datalist>
+            </div>
+
+            <div class="md-form mb-0">
+                <input class="col form-control trigger-param" type="text" id="txt-strategy-group-boolean-operator" name="group-boolean-operator" list="group-boolean-operator-list"/>
+                <label for="txt-strategy-group-boolean-operator">Group Operator</label>
+                <datalist id="group-boolean-operator-list">
+                    <option th:each="row : ${booleanOperatorList}"
+                            th:value="${row.key.strValue}" th:label="${row.key.strValue}" th:data-json="${row.value}">
+                </datalist>
+            </div>
+            <div class="md-form mb-0">
+                <input class="col form-control trigger-param" type="text" id="txt-strategy-group" name="group" list="group-list"/>
+                <label for="txt-strategy-group">Group</label>
+                <datalist id="group-list">
+                </datalist>
+            </div>
+            <div class="md-form mb-0">
+                <input class="col form-control trigger-param" type="text" id="txt-strategy-boolean-operator" name="boolean-operator" list="boolean-operator-list"/>
+                <label for="txt-strategy-boolean-operator">Operator</label>
+                <datalist id="boolean-operator-list">
+                    <option th:each="row : ${booleanOperatorList}"
+                            th:value="${row.key.strValue}" th:label="${row.key.strValue}" th:data-json="${row.value}">
+                </datalist>
+            </div>
+            <div class="md-form mb-0">
+                <input class="col form-control trigger-param" type="text" id="txt-strategy-serie-event-type" name="serie-event-type" list="serie-event-type-list"/>
+                <label for="txt-strategy-serie-event-type">Serie Event</label>
+                <datalist id="serie-event-type-list">
+                    <option th:each="row : ${serieEventTypeList}"
+                            th:value="${row.key.eventType.strValue}" th:label="${row.key.eventType.strValue}" th:data-json="${row.value}">
+                </datalist>
+            </div>
+
+            <div id="event-type-parameters" class="form-group mb-0"></div>
+
+            <datalist id="parameter-type-list">
+                <option th:each="row : ${strategyStepConditionParameterTypeList}"
+                        th:value="${row.key.strValue}" th:label="${row.key.strValue}" th:data-json="${row.value}">
+            </datalist>
+            <datalist id="strategy-parameter-indicator-list">');
+                <option th:each="row : ${indicatorList}"
+                        th:value="${row.key.indicatorType.strValue}" th:label="${row.key.indicatorType.strValue}" th:data-json="${row.value}">
+            </datalist>
+
+            <div class="md-form mb-0">
+                <input class="btn btn-outline-info rounded-pill btn-block my-4 waves-effect z-depth-0" type="button" id="btn-trigger" value="Add Trigger"/>
+            </div>
+        </div>
+        <div class="col-8">
+        </div>
+    </form>
+<script>
+$(function() {
+    $("#txt-strategy-serie-event-type").on("input", function () {
+        $('#event-type-parameters').empty();
+        var value = $("#txt-strategy-serie-event-type").val();
+        var el = $("#serie-event-type-list").find("*[value='" + value + "']");
+        if (el.length > 0) {
+            var selected = el.data("json");
+            if (selected != undefined) {
+                var id = 0;
+                var html = "";
+                selected.parameters.forEach(p => {
+                    html = "";
+                    id = id + 1;
+                    var rowId = 'row-' + id;
+                    html += '<div class="form-row md-form mb-0" id="' + rowId + '"></div>';
+                    $('#event-type-parameters').append(html);
+                    html = "";
+                    html += '<p for="" class="col col-form-label">' + p.name + '-></p>';
+                    if (p.parameterType == "Product") {
+
+                    }
+                    if (p.parameterType == "Serie") {
+                        html += '<div class="md-form mb-0">';
+                        html += '<input class="col form-control trigger-param" type="text" id="txt-strategy-parameter-products-' + rowId + '" name="strategy-parameter-product-' + rowId + '" list="strategy-parameter-product-list-' + rowId + '"/>';
+                        html += '<label for="txt-strategy-parameter-products-' + rowId + '">Product</label>';
+                        html += '<datalist id="strategy-parameter-product-list-' + rowId + '"></datalist>';
+                        html += '</div>';
+                        html += '<div class="md-form mb-0">';
+                        html += '<input class="col form-control trigger-param" type="text" id="txt-strategy-parameter-indicator-' + rowId + '" name="indicator-' + rowId + '" list="strategy-parameter-indicator-list"/>';
+                        html += '<label for="txt-strategy-parameter-indicator-' + rowId + '">Indicator</label>';
+                        html += '</div>';
+                        $('#' + rowId).append(html);
+                        html = "";
+                        html += '<div class="md-form mb-0" id="strategy-parameter-indicator-parameters-' + rowId + '"></div>';
+                        $('#event-type-parameters').append(html);
+
+                        // Add events
+                        $("#txt-strategy-parameter-products-" + rowId).on("input", function () {
+                            fillProductList("btn-strategy-parameter-products-" + rowId, "txt-strategy-parameter-products-" + rowId, "strategy-parameter-product-list-" + rowId);
+                        });
+                        $("#txt-strategy-parameter-indicator-" + rowId).on("input", function () {
+                            fillIndicatorParameters("txt-strategy-parameter-indicator-" + rowId, "strategy-parameter-indicator-parameters-" + rowId, "strategy-parameter-indicator-list");
+                        });
+                    }
+                    if (p.parameterType == "Number") {
+                        html += '<input class="col form-control trigger-param" type="text" data-type="parameter" id="number-value-' + rowId + '"></input>';
+                        html += '<label for="number-value-' + rowId + '">Value</label>';
+                        $('#' + rowId).append(html);
+                    }
+                    if (p.parameterType == "Time") {
+                        html += '<input class="col form-control trigger-param" type="text" data-type="parameter" id="time-value-' + rowId + '"></input>';
+                        html += '<label for="time-value-' + rowId + '">Value</label>';
+                        $('#' + rowId).append(html);
+                    }
+                });
+            }
+        }
+    });
+
+    $("#btn-trigger").click(function(e) {
+        e.preventDefault();
+        $("#btn-trigger").prop("disabled", true);
+        var search = {};
+        var strategyName = $("#txt-strategy-name").val();
+        search["strategyName"] = strategyName;
+        var instantType = $("#txt-strategy-period-instant-type").val();
+        var instantTypeEl = $("#period-instant-type-list").find("*[value='" + instantType + "']");
+        if (instantTypeEl.length > 0)
+            search["instantType"] = instantTypeEl.data("json");
+        else
+            search["instantType"] = null;
+        var groupOperator = $("#txt-strategy-group-boolean-operator").val();
+        var groupOperatorEl = $("#group-boolean-operator-list").find("*[value='" + groupOperator + "']");
+        if (groupOperatorEl.length > 0)
+            search["groupOperator"] = groupOperatorEl.data("json");
+        else
+            search["groupOperator"] = null;
+        var group = $("#txt-strategy-group").val();
+        var groupEl = $("#group-list").find("*[value='" + group + "']");
+        if (groupEl.length > 0)
+            search["group"] = JSON.stringify(groupEl.data("json"));
+        else
+            search["group"] = group;
+        var event = $("#txt-strategy-serie-event-type").val();
+        var eventEl = $("#serie-event-type-list").find("*[value='" + event + "']");
+        if (eventEl.length > 0) {
+            var selected = eventEl.data("json");
+            if (selected != undefined) {
+                var operator = $("#txt-strategy-boolean-operator").val();
+                var operatorEl = $("#boolean-operator-list").find("*[value='" + operator + "']");
+                if (operatorEl.length > 0)
+                    selected.booleanOperator = operatorEl.data("json");
+                var id = 0;
+                var html = "";
+                selected.parameters.forEach(p => {
+                    id = id + 1;
+                    var rowId = 'row-' + id;
+                    var parametersEl = $("#" + rowId);
+                    if (p.parameterType == "Product") {
+
+                    }
+                    if (p.parameterType == "Serie") {
+                        var selected.value = {};
+                        var product = parametersEl.find("#txt-strategy-parameter-products-" + rowId);
+                        var productEl = $("#strategy-parameter-product-list-" + rowId).find("*[value='" + product + "']");
+                        if (productEl.length > 0) {
+                            selected.value.product = productEl.data("json");
+                        }
+                        var indicatorType = $("#txt-strategy-parameter-indicator-" + rowId).val();
+                        var indicatorEl = $("#strategy-parameter-indicator-list").find("*[value='" + indicatorType + "']");
+                        if (indicatorEl != undefined) {
+                            var indicator = indicatorEl.data("json");
+                            var parametersArray = [];
+                            for (p in indicator.parameters) {
+                                indicator.parameters[p].value = $("#strategy-parameter-indicator-parameters-" + rowId).find("#" + indicator.parameters[p].name).val();
+                            }
+                            selected.value.indicator = indicator;
+                        }
+                    }
+                    if (p.parameterType == "Number") {
+                        search["number"] = $("#number-value-" + rowId).val();
+                    }
+                    if (p.parameterType == "Time") {
+                        search["number"] = $("#time-value-" + rowId).val();
+                    }
+                });
+                search["condition"] = JSON.stringify(selected);
+            }
+        }
+        var ok = true;
+        if (ok) {
+            $.ajax({
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(search),
+                dataType: 'json',
+                cache: false,
+                timeout: 600000,
+                url: "/quote/addtrigger",
+                success: function(result) {
+                    $("#btn-trigger").prop("disabled", (result.length > 0));
+                    $("#strategy-trigger").empty();
+                    $("#strategy-trigger").html("saved");
+                },
+                error: function(result) {
+                    // Nothing to do
+                    $("#strategy-trigger").html("ERROR");
+                    //$("#btn-trigger").prop("disabled", true);
+                },
+                complete: function(result) {
+
+                }
+            });
+        }
+    });
+});
+</script>
+</div>
+</body>
+</html>

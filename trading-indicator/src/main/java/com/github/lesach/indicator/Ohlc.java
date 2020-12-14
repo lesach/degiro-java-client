@@ -1,21 +1,26 @@
 package com.github.lesach.indicator;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
 public class Ohlc
-    {
-        public LocalDateTime Date;
+{
+   private LocalDateTime Date;
 
-        public BigDecimal Open;
+   private BigDecimal Open;
 
-        public BigDecimal High;
+   private BigDecimal High;
 
-        public BigDecimal Low;
+   private BigDecimal Low;
 
-        public BigDecimal Close;
+   private BigDecimal Close;
 
-        public BigDecimal Volume;
+   private BigDecimal Volume;
 
-        public BigDecimal AdjClose;
-    }
+   private BigDecimal AdjClose;
+}

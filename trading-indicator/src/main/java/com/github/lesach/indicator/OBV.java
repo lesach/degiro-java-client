@@ -22,20 +22,20 @@ public class OBV extends IndicatorCalculatorBase<SingleDoubleSerie>
     public  SingleDoubleSerie Calculate()
     {
         SingleDoubleSerie obvSerie = new SingleDoubleSerie();
-        obvSerie.Values.add(OhlcList.get(0).Volume);
+        obvSerie.Values.add(OhlcList.get(0).getVolume());
 
         for (int i = 1; i < OhlcList.size(); i++)
         {
             BigDecimal value = BigDecimal.ZERO;
-            if (OhlcList.get(i).Close.compareTo(OhlcList.get(i - 1).Close) > 0)
+            if (OhlcList.get(i).getClose().compareTo(OhlcList.get(i - 1).getClose()) > 0)
             {
-                value = obvSerie.Values.get(i - 1).add(OhlcList.get(i).Volume);
+                value = obvSerie.Values.get(i - 1).add(OhlcList.get(i).getVolume());
             }
-            else if (OhlcList.get(i).Close.compareTo(OhlcList.get(i - 1).Close) < 0)
+            else if (OhlcList.get(i).getClose().compareTo(OhlcList.get(i - 1).getClose()) < 0)
             {
-                value = obvSerie.Values.get(i - 1).subtract(OhlcList.get(i).Volume);
+                value = obvSerie.Values.get(i - 1).subtract(OhlcList.get(i).getVolume());
             }
-            else if (OhlcList.get(i).Close.equals(OhlcList.get(i - 1).Close))
+            else if (OhlcList.get(i).getClose().equals(OhlcList.get(i - 1).getClose()))
             {
                 value = obvSerie.Values.get(i - 1);
             }

@@ -29,7 +29,7 @@ public class SAR extends IndicatorCalculatorBase<SingleDoubleSerie>
         // Difference of High and Low
         List<BigDecimal> differences = new ArrayList<>();
         for (Ohlc ohlc : OhlcList) {
-            BigDecimal difference = ohlc.High.subtract(ohlc.Low);
+            BigDecimal difference = ohlc.getHigh().subtract(ohlc.getLow());
             differences.add(difference);
         }
 
@@ -38,14 +38,14 @@ public class SAR extends IndicatorCalculatorBase<SingleDoubleSerie>
 
         BigDecimal[] sarArr = new BigDecimal[OhlcList.size()];
 
-        BigDecimal[] highList = OhlcList.stream().map(x -> x.High).toArray(BigDecimal[]::new);
-        BigDecimal[] lowList = OhlcList.stream().map(x -> x.Low).toArray(BigDecimal[]::new);
+        BigDecimal[] highList = OhlcList.stream().map(x -> x.getHigh()).toArray(BigDecimal[]::new);
+        BigDecimal[] lowList = OhlcList.stream().map(x -> x.getLow()).toArray(BigDecimal[]::new);
 
         /* Find first non-NA value */
         int beg = 1;
         for (int i = 0; i < OhlcList.size(); i++)
         {
-            if (OhlcList.get(i).High.compareTo(BigDecimal.ZERO) == 0 || OhlcList.get(i).Low.compareTo(BigDecimal.ZERO) == 0)
+            if (OhlcList.get(i).getHigh().compareTo(BigDecimal.ZERO) == 0 || OhlcList.get(i).getLow().compareTo(BigDecimal.ZERO) == 0)
             {
                 sarArr[i] = BigDecimal.ZERO;
                 beg++;

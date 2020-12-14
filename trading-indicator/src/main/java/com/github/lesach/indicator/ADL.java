@@ -19,9 +19,9 @@ public class ADL extends IndicatorCalculatorBase<SingleDoubleSerie>
         SingleDoubleSerie adlSerie = new SingleDoubleSerie();
         for (Ohlc ohlc : OhlcList)
         {
-            BigDecimal value = ((ohlc.Close.subtract(ohlc.Low)).subtract(ohlc.High.subtract(ohlc.Close))
-                    .divide(ohlc.High.subtract(ohlc.Low), MathContext.DECIMAL64)
-                    .multiply(ohlc.Volume));
+            BigDecimal value = ((ohlc.getClose().subtract(ohlc.getLow())).subtract(ohlc.getHigh().subtract(ohlc.getClose()))
+                    .divide(ohlc.getHigh().subtract(ohlc.getLow()), MathContext.DECIMAL64)
+                    .multiply(ohlc.getVolume()));
             adlSerie.Values.add(value);
         }
 

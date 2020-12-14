@@ -5,17 +5,18 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.CharStreams;
 import com.google.gson.Gson;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.util.List;
 import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.BasicHttpContext;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.List;
 
 /**
  *
@@ -34,18 +35,19 @@ public class DCommunication extends DHttpManager {
         this.context = new BasicHttpContext();
     }
 
-    public DResponse getUrlData(String base, String uri, Object data) throws UnsupportedEncodingException, IOException {
+
+    public DResponse getUrlData(String base, String uri, Object data) throws IOException {
         return getUrlData(base, uri, data, null, null);
     }
 
-    public DResponse getUrlData(String base, String uri, Object data, List<Header> headers) throws UnsupportedEncodingException, IOException {
+    public DResponse getUrlData(String base, String uri, Object data, List<Header> headers) throws IOException {
         return getUrlData(base, uri, data, headers, null);
     }
 
-    public DResponse getUrlData(String base, String uri, Object data, List<Header> headers, final String method) throws UnsupportedEncodingException, IOException {
+    public DResponse getUrlData(String base, String uri, Object data, List<Header> headers, final String method) throws IOException {
 
         String url = base + uri;
-        HttpRequestBase request = null;
+        HttpRequestBase request;
 
         if (data == null) {
             request = new HttpRequestBase() {
@@ -89,21 +91,27 @@ public class DCommunication extends DHttpManager {
     }
 
     public DResponse getData(DSession session, String params, Object data) throws IOException {
-        return getUrlData(session.getConfig().getTradingUrl() + "v5/update/" + session.getClient().getIntAccount() + ";jsessionid=" + session.getJSessionId(), "?" + params, data);
+        return getUrlData(session.getConfig().getData().getTradingUrl() + "v5/update/" + session.getClient().getData().getIntAccount() + ";jsessionid=" + session.getJSessionId(), "?" + params, data);
     }
 
-    public DResponse getGraph(DSession session, String params) throws IOException {
-        /*
-requestid:  1
-resolution: PT1S
-culture:    en-US
-period:     P1D
-series:     issueid:280172443
-format:     json
-callback:   vwd.hchart.seriesRequestManager.sync_response
-userToken:  91940
-tz:         Europe/Madrid
-         */
-        return getUrlData(CHARTING_URL, "?requestid=1&resolution=PT1S&culture=en-US&period=P1D&" + params + "&format=json&userToken=" + session.getConfig().getClientId() + "&tz=Europe%2FMadrid", null);
+
+    public DResponse getGraph(DSession session,
+                              String parameters,
+                              String resolution) throws IOException {
+            /*
+    requestid:  1
+    resolution: PT1S
+    culture:    en-US
+    period:     P1D
+    series:     issueid:280172443
+    format:     json
+    callback:   vwd.hchart.seriesRequestManager.sync_response
+    userToken:  91940
+    tz:         Europe/Madrid
+             */
+        return getUrlData(CHARTING_URL,
+                "?requestid=1&resolution=" + resolution + "&culture=en-US&" + parameters + "&format=json&userToken=" + session.getConfig().getData().getClientId() + "&tz=Europe%2FAmsterdam",
+                null);
     }
+
 }

@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class DProductTypeDeserializer extends StdDeserializer<DProductType> {
 
-    protected DProductTypeDeserializer() {
+    public DProductTypeDeserializer() {
         super(DProductType.class);
     }
 

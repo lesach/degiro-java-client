@@ -1,5 +1,6 @@
 package com.github.lesach.strategy;
 
+
 public enum EBooleanOperator
 {
     NULL(-1, "NONE"),
@@ -51,4 +52,5 @@ public enum EBooleanOperator
 
         return type;
     }
+
 }

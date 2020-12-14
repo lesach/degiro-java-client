@@ -2,6 +2,7 @@ package com.github.lesach.strategy;
 
 import com.github.lesach.client.*;
 import com.github.lesach.client.exceptions.DeGiroException;
+import com.github.lesach.client.log.DLog;
 import com.github.lesach.client.session.DPersistentSession;
 import com.github.lesach.client.utils.DCredentials;
 import com.google.common.base.Strings;
@@ -23,7 +24,8 @@ public class DeGiroClient implements DeGiroClientInterface, InitializingBean
     public boolean IsConnected() { return this._Degiro.isConnected(); }
 
     @Override
-    public void afterPropertiesSet() {
+    public void afterPropertiesSet() throws DeGiroException {
+        DLog.info("Trying to connect to broker...");
         DCredentials creds = new DCredentials() {
             @Override
             public String getUsername() {
@@ -39,6 +41,7 @@ public class DeGiroClient implements DeGiroClientInterface, InitializingBean
             this._Degiro = DeGiroFactory.newInstance(creds);
         else
             this._Degiro = DeGiroFactory.newInstance(creds, new DPersistentSession(appConfig.jsonPeristenSessionPath));
+        this._Degiro.ensureLogged();
     }
 
     /// <summary>
@@ -108,8 +111,7 @@ public class DeGiroClient implements DeGiroClientInterface, InitializingBean
     /// <param name="resolution"></param>
     /// <returns></returns>
     @Override
-    public DPriceHistory GetPriceHistory(String vwdIdentifierType, String vwdId, LocalDateTime start, LocalDateTime end, String resolution)
-    {
+    public DPriceHistory GetPriceHistory(String vwdIdentifierType, String vwdId, LocalDateTime start, LocalDateTime end, String resolution) throws DeGiroException {
         return this._Degiro.getPriceHistory(vwdIdentifierType, vwdId, start, end, resolution);
     }
 

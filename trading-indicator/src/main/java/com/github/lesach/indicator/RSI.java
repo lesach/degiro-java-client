@@ -41,7 +41,7 @@ public class RSI extends IndicatorCalculatorBase<RSISerie>
                 BigDecimal gainSum = BigDecimal.ZERO;
                 for (int j = start; j <= i; j++)
                 {
-                    BigDecimal thisChange = OhlcList.get(j).Close.subtract(OhlcList.get(j - 1).Close);
+                    BigDecimal thisChange = OhlcList.get(j).getClose().subtract(OhlcList.get(j - 1).getClose());
                     if (thisChange.compareTo(BigDecimal.ZERO) > 0)
                     {
                         gainSum = gainSum.add(thisChange);
@@ -51,7 +51,7 @@ public class RSI extends IndicatorCalculatorBase<RSISerie>
                 BigDecimal lossSum = BigDecimal.ZERO;
                 for (int j = start; j <= i; j++)
                 {
-                    BigDecimal thisChange = OhlcList.get(j).Close.subtract(OhlcList.get(j - 1).Close);
+                    BigDecimal thisChange = OhlcList.get(j).getClose().subtract(OhlcList.get(j - 1).getClose());
                     if (thisChange.compareTo(BigDecimal.ZERO) < 0)
                     {
                         lossSum = lossSum.add(thisChange);

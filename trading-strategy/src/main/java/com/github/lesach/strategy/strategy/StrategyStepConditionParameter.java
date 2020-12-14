@@ -1,21 +1,33 @@
 
 package com.github.lesach.strategy.strategy;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.lesach.client.DProductDescription;
 import com.github.lesach.strategy.serie.SerieKey;
+import com.github.lesach.strategy.service.ValueDeserializer;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
 
+@Getter
+@Setter
+@JsonDeserialize(using = StrategyStepConditionParameterDeserializer.class)
 public class StrategyStepConditionParameter
 {
-    public String Name;
-    public String getDescription() { return GetValueDescription(); }
-    public EStrategyStepConditionParameterType ParameterType;
-    public DProductDescription Product;
+    private String Name;
 
-    private Object _value;
-    public Object getValue() { return _value; }
+    private EStrategyStepConditionParameterType ParameterType;
+
+    //private DProductDescription Product;
+    //public SerieKey Serie;
+
+    private Object value;
+
+    private String getDescription() { return GetValueDescription(); }
+
+    /*
     public void setValue(Object value) {
         if (ParameterType == EStrategyStepConditionParameterType.Product) {
             Product = (DProductDescription) value;
@@ -31,7 +43,7 @@ public class StrategyStepConditionParameter
         }
         _value = value;
     }
-    public SerieKey Serie;
+    */
 
     @Override
     public String toString()
@@ -39,39 +51,36 @@ public class StrategyStepConditionParameter
         return this.Name + "=" + this.getDescription();
     }
 
-    public BigDecimal DoubleValue;
+    //public BigDecimal DoubleValue;
 
-    public LocalTime TimeSpanValue;
+    //public LocalTime TimeSpanValue;
 
     private String GetValueDescription()
     {
-        if (ParameterType == EStrategyStepConditionParameterType.Product)
+        if (value instanceof DProductDescription)
         {
-            if (Product != null)
-                return Product.getName();
+            return ((DProductDescription) value).getName();
         }
-        if (ParameterType == EStrategyStepConditionParameterType.Serie)
+        if (value instanceof SerieKey)
         {
-            if (Serie != null)
-                return Serie.toString();
+            return ((SerieKey) value).toString();
         }
-        if (ParameterType == EStrategyStepConditionParameterType.Number)
+        if (value instanceof BigDecimal)
         {
             return "Number";
         }
-        if (ParameterType == EStrategyStepConditionParameterType.Time)
+        if (value instanceof LocalTime)
         {
             return "Time";
         }
-        return "Uknown type";
+        return "Unknown type";
     }
 
-    public StrategyStepConditionParameter clone()
-    {
-        StrategyStepConditionParameter result = new StrategyStepConditionParameter();
-        result.ParameterType = this.ParameterType;
+    public StrategyStepConditionParameter clone() throws CloneNotSupportedException {
+        StrategyStepConditionParameter result = (StrategyStepConditionParameter) super.clone();
+        result.setParameterType(this.ParameterType);
         result.setValue(this.getValue());
-        result.Name = this.Name;
+        result.setName(this.Name);
         return result;
     }
 }

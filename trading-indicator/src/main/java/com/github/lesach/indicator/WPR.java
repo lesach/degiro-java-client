@@ -39,7 +39,7 @@ public class WPR extends IndicatorCalculatorBase<SingleDoubleSerie>
             {
                 BigDecimal highestHigh = HighestHigh(i);
                 BigDecimal lowestLow = LowestLow(i);
-                BigDecimal wpr = highestHigh.subtract(OhlcList.get(i).Close)
+                BigDecimal wpr = highestHigh.subtract(OhlcList.get(i).getClose())
                         .divide(highestHigh.subtract(lowestLow), MathContext.DECIMAL64)
                         .multiply(BigDecimal.valueOf(100L));
                 wprSerie.Values.add(wpr);
@@ -61,9 +61,9 @@ public class WPR extends IndicatorCalculatorBase<SingleDoubleSerie>
         BigDecimal highestHigh = BigDecimal.ZERO;
         for (int i = startIndex; i <= endIndex; i++)
         {
-            if (OhlcList.get(i).High.compareTo(highestHigh) > 0)
+            if (OhlcList.get(i).getHigh().compareTo(highestHigh) > 0)
             {
-                highestHigh = OhlcList.get(i).High;
+                highestHigh = OhlcList.get(i).getHigh();
             }
         }
 
@@ -77,9 +77,9 @@ public class WPR extends IndicatorCalculatorBase<SingleDoubleSerie>
         BigDecimal lowestLow = BigDecimal.valueOf(Double.MAX_VALUE);
         for (int i = startIndex; i <= index; i++)
         {
-            if (OhlcList.get(i).Low.compareTo(lowestLow) < 0)
+            if (OhlcList.get(i).getLow().compareTo(lowestLow) < 0)
             {
-                lowestLow = OhlcList.get(i).Low;
+                lowestLow = OhlcList.get(i).getLow();
             }
         }
 

@@ -29,9 +29,9 @@ public class ROC extends IndicatorCalculatorBase<SingleDoubleSerie>
         {
             if (i >= this.Period)
             {
-                rocSerie.Values.add(OhlcList.get(i).Close
-                        .subtract(OhlcList.get(i - this.Period).Close)
-                        .divide(OhlcList.get(i - this.Period).Close, MathContext.DECIMAL64)
+                rocSerie.Values.add(OhlcList.get(i).getClose()
+                        .subtract(OhlcList.get(i - this.Period).getClose())
+                        .divide(OhlcList.get(i - this.Period).getClose(), MathContext.DECIMAL64)
                         .multiply(BigDecimal.valueOf(100L)));
             }
             else

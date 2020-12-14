@@ -5,6 +5,9 @@
  */
 package com.github.lesach.client;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  *
  * @author indiketa
@@ -24,10 +27,11 @@ public enum DProductType {
 
     private final int typeCode;
 
-    private DProductType(int typeCode) {
+    DProductType(int typeCode) {
         this.typeCode = typeCode;
     }
 
+    @JsonValue
     public int getTypeCode() {
         return typeCode;
     }
@@ -46,4 +50,17 @@ public enum DProductType {
         return type;
     }
 
+    public static DProductType forCode(int code) {
+        for (DProductType element : values()) {
+            if (element.getTypeCode() == code) {
+                return element;
+            }
+        }
+        return null;
+    }
+
+    @JsonCreator
+    public static DProductType forValue(String v) {
+        return DProductType.forCode(Integer.parseInt(v));
+    }
 }

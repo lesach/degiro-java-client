@@ -43,7 +43,7 @@ public class TRIX extends IndicatorCalculatorBase<SingleDoubleSerie>
         List<BigDecimal> emaValues = ema.Calculate().Values;
         for (int i = 0; i < OhlcList.size(); i++)
         {
-            OhlcList.get(i).Close = emaValues.get(i)  != null ? emaValues.get(i) : BigDecimal.ZERO;
+            OhlcList.get(i).setClose(emaValues.get(i)  != null ? emaValues.get(i) : BigDecimal.ZERO);
         }
 
         // BigDecimal smooth
@@ -55,7 +55,7 @@ public class TRIX extends IndicatorCalculatorBase<SingleDoubleSerie>
         }
         for (int i = 0; i < OhlcList.size(); i++)
         {
-            OhlcList.get(i).Close = doubleSmoothValues.get(i)  != null ? doubleSmoothValues.get(i) : BigDecimal.ZERO;
+            OhlcList.get(i).setClose(doubleSmoothValues.get(i)  != null ? doubleSmoothValues.get(i) : BigDecimal.ZERO);
         }
 
         // Triple smooth
@@ -67,7 +67,7 @@ public class TRIX extends IndicatorCalculatorBase<SingleDoubleSerie>
         }
         for (int i = 0; i < OhlcList.size(); i++)
         {
-            OhlcList.get(i).Close = tripleSmoothValues.get(i)  != null ? tripleSmoothValues.get(i) : BigDecimal.ZERO;
+            OhlcList.get(i).setClose(tripleSmoothValues.get(i)  != null ? tripleSmoothValues.get(i) : BigDecimal.ZERO);
         }
 
         // Last step

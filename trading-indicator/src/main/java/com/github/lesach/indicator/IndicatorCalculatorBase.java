@@ -41,25 +41,25 @@ public abstract class IndicatorCalculatorBase<T>
                     for (int i = 0; i < fieldCount; i++) {
                         switch (headers[i]) {
                             case "Date":
-                                ohlc.Date = LocalDateTime.parse(csv[i], DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+                                ohlc.setDate(LocalDateTime.parse(csv[i], DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
                                 break;
                             case "Open":
-                                ohlc.Open = new BigDecimal(csv[i]);
+                                ohlc.setOpen(new BigDecimal(csv[i]));
                                 break;
                             case "High":
-                                ohlc.High = new BigDecimal(csv[i]);
+                                ohlc.setHigh(new BigDecimal(csv[i]));
                                 break;
                             case "Low":
-                                ohlc.Low = new BigDecimal(csv[i]);
+                                ohlc.setLow(new BigDecimal(csv[i]));
                                 break;
                             case "Close":
-                                ohlc.Close = new BigDecimal(csv[i]);
+                                ohlc.setClose(new BigDecimal(csv[i]));
                                 break;
                             case "Volume":
-                                ohlc.Volume = new BigDecimal(csv[i]);
+                                ohlc.setVolume(new BigDecimal(csv[i]));
                                 break;
                             case "Adj Close":
-                                ohlc.AdjClose = new BigDecimal(csv[i]);
+                                ohlc.setAdjClose(new BigDecimal(csv[i]));
                                 break;
                             default:
                                 break;

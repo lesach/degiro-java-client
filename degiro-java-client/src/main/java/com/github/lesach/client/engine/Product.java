@@ -99,7 +99,7 @@ public class Product {
 
             name = prod.getName();
             vwdId = prod.getVwdId();
-            type = prod.getProductTypeId();
+            type = DProductType.getProductTypeByValue(prod.getProductTypeId());
             closePrice = prod.getClosePrice();
             closePriceDate = prod.getClosePriceDate().getTime();
         }

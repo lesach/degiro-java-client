@@ -67,12 +67,12 @@ public class MACD extends IndicatorCalculatorBase<MACDSerie>
                             .multiply(fastEmaValues.get(i)
                                     .divide(slowEmaValues.get(i), MathContext.DECIMAL64).subtract(BigDecimal.ONE)));
                 }
-                OhlcList.get(i).Close = macdSerie.MACDLine.get(i);
+                OhlcList.get(i).setClose(macdSerie.MACDLine.get(i));
             }
             else
             {
                 macdSerie.MACDLine.add(null);
-                OhlcList.get(i).Close = BigDecimal.ZERO;
+                OhlcList.get(i).setClose(BigDecimal.ZERO);
             }
         }
             

@@ -55,7 +55,7 @@ import java.util.List;
             {
                 if (smaList.get(i)  != null)
                 {
-                    BigDecimal dpo = OhlcList.get(i).Close.subtract(smaList.get(i));
+                    BigDecimal dpo = OhlcList.get(i).getClose().subtract(smaList.get(i));
                     dpoSerie.Values.add(dpo);
                 }
                 else

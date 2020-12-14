@@ -40,15 +40,15 @@ public  SingleDoubleSerie Calculate()
 
             for (int i = 1; i < OhlcList.size(); i++)
             {
-                if (OhlcList.get(i).Close.compareTo(OhlcList.get(i - 1).Close) > 0)
+                if (OhlcList.get(i).getClose().compareTo(OhlcList.get(i - 1).getClose()) > 0)
                 {
-                    upValues.add(OhlcList.get(i).Close.subtract(OhlcList.get(i - 1).Close));
+                    upValues.add(OhlcList.get(i).getClose().subtract(OhlcList.get(i - 1).getClose()));
                     downValues.add(BigDecimal.ZERO);
                 }
-                else if (OhlcList.get(i).Close.compareTo(OhlcList.get(i - 1).Close) < 0)
+                else if (OhlcList.get(i).getClose().compareTo(OhlcList.get(i - 1).getClose()) < 0)
                 {
                     upValues.add(BigDecimal.ZERO);
-                    downValues.add(OhlcList.get(i - 1).Close.subtract(OhlcList.get(i).Close));
+                    downValues.add(OhlcList.get(i - 1).getClose().subtract(OhlcList.get(i).getClose()));
                 }
                 else
                 {

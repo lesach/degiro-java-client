@@ -5,6 +5,8 @@
  */
 package com.github.lesach.client;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  *
  * @author indiketa
@@ -14,8 +16,10 @@ public enum DOrderType {
     LIMITED(0, "LIMIT"),
     MARKET_ORDER(2, "MARKET"),
     STOP_LOSS(3, "STOPLOSS"),
-    LIMITED_STOP_LOSS(1, "STOPLIMIT");
-
+    LIMITED_STOP_LOSS(1, "STOPLIMIT"),
+    TRAILINGSTOP(4, "TRAILINGSTOP"),
+    STANDARDAMOUNT(5, "STANDARDAMOUNT"),
+    STANDARDSIZE(6, "STANDARDSIZE");
     private final int value;
     private final String strValue;
 
@@ -28,6 +32,7 @@ public enum DOrderType {
         return value;
     }
 
+    @JsonValue
     public String getStrValue() {
         return strValue;
     }

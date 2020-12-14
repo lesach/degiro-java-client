@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
 
 public class DProductTypeSerializer extends StdSerializer<DProductType> {
-    protected DProductTypeSerializer() {
+    public DProductTypeSerializer() {
         super(DProductType.class);
     }
 

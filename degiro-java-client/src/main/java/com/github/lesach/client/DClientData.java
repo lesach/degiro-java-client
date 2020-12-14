@@ -1,6 +1,14 @@
 package com.github.lesach.client;
 
+import com.github.lesach.client.raw.DClientAddress;
+import com.github.lesach.client.raw.DClientBankAccount;
+import com.github.lesach.client.raw.DClientFirstContact;
+import lombok.Getter;
+import lombok.Setter;
+
 // [DataContract]
+@Getter
+@Setter
 public class DClientData
 {
     // [DataMember(Name = "id")]
@@ -20,9 +28,9 @@ public class DClientData
     // [DataMember(Name = "email")]
     public String email;
     // [DataMember(Name = "firstContact")]
-    public FirstContact firstContact;
+    public DClientFirstContact firstContact;
     // [DataMember(Name = "address")]
-    public Address address;
+    public DClientAddress address;
     // [DataMember(Name = "phoneNumber", IsRequired = false)]
     public String phoneNumber;
     // [DataMember(Name = "cellphoneNumber")]
@@ -34,7 +42,7 @@ public class DClientData
     // [DataMember(Name = "culture")]
     public String culture;
     // [DataMember(Name = "bankAccount")]
-    public BankAccount bankAccount;
+    public DClientBankAccount bankAccount;
     // [DataMember(Name = "memberCode")]
     public String memberCode;
     // [DataMember(Name = "isWithdrawalAvailable")]

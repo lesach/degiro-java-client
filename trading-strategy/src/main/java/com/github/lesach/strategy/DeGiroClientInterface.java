@@ -55,7 +55,7 @@ public interface DeGiroClientInterface {
     /// <param name="end"></param>
     /// <param name="resolution"></param>
     /// <returns></returns>
-    DPriceHistory GetPriceHistory(String vwdIdentifierType, String vwdId, LocalDateTime start, LocalDateTime end, String resolution);
+    DPriceHistory GetPriceHistory(String vwdIdentifierType, String vwdId, LocalDateTime start, LocalDateTime end, String resolution) throws DeGiroException;
 
     /// <summary>
     /// Search a product

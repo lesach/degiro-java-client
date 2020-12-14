@@ -34,21 +34,21 @@ import java.math.MathContext;
         public  SingleDoubleSerie Calculate()
         {
             // karşılaştırma için tutarlar ezilebilir. Bağlantı: http://stockcharts.com/school/doku.php?id=chart_school:technical_indicators:moving_averages
-            //OhlcList[0].Close = 22.27;
-            //OhlcList[1].Close = 22.19;
-            //OhlcList[2].Close = 22.08;
-            //OhlcList[3].Close = 22.17;
-            //OhlcList[4].Close = 22.18;
-            //OhlcList[5].Close = 22.13;
-            //OhlcList[6].Close = 22.23;
-            //OhlcList[7].Close = 22.43;
-            //OhlcList[8].Close = 22.24;
-            //OhlcList[9].Close = 22.29;
-            //OhlcList[10].Close = 22.15;
-            //OhlcList[11].Close = 22.39;
-            //OhlcList[12].Close = 22.38;
-            //OhlcList[13].Close = 22.61;
-            //OhlcList[14].Close = 23.36;
+            //OhlcList[0].setClose(22.27;
+            //OhlcList[1].setClose(22.19;
+            //OhlcList[2].setClose(22.08;
+            //OhlcList[3].setClose(22.17;
+            //OhlcList[4].setClose(22.18;
+            //OhlcList[5].setClose(22.13;
+            //OhlcList[6].setClose(22.23;
+            //OhlcList[7].setClose(22.43;
+            //OhlcList[8].setClose(22.24;
+            //OhlcList[9].setClose(22.29;
+            //OhlcList[10].setClose(22.15;
+            //OhlcList[11].setClose(22.39;
+            //OhlcList[12].setClose(22.38;
+            //OhlcList[13].setClose(22.61;
+            //OhlcList[14].setClose(23.36;
 
             SingleDoubleSerie emaSerie = new SingleDoubleSerie();
             BigDecimal multiplier = !this.Wilder ? (BigDecimal.valueOf(2L).divide(BigDecimal.valueOf(Period + 1), MathContext.DECIMAL64)) : BigDecimal.ONE.divide(BigDecimal.valueOf(Period), MathContext.DECIMAL64);
@@ -57,7 +57,7 @@ import java.math.MathContext;
             {
                 if (i >= Period - 1)
                 {       
-                    BigDecimal close = OhlcList.get(i).Close;
+                    BigDecimal close = OhlcList.get(i).getClose();
                     BigDecimal emaPrev;
                     if (emaSerie.Values.get(i - 1)  != null)
                     {
@@ -70,7 +70,7 @@ import java.math.MathContext;
                         BigDecimal sum = BigDecimal.ZERO;
                         for (int j = i; j >= i - (Period - 1); j--)
                         {
-                            sum = sum.add(OhlcList.get(j).Close);
+                            sum = sum.add(OhlcList.get(j).getClose());
                         }
                         BigDecimal ema = sum.divide(BigDecimal.valueOf(Period), MathContext.DECIMAL64);
                         emaSerie.Values.add(ema);

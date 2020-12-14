@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import java.io.IOException;
 
 public class DOrderTimeDeserializer extends StdDeserializer<DOrderTime> {
-    protected DOrderTimeDeserializer() {
+    public DOrderTimeDeserializer() {
         super(DOrderTime.class);
     }
 

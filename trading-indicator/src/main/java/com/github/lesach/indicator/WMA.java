@@ -27,11 +27,11 @@ public class WMA extends IndicatorCalculatorBase<SingleDoubleSerie>
     public  SingleDoubleSerie Calculate()
     {
         // karşılaştırma için tutarlar ezilebilir. Bağlantı: http://fxtrade.oanda.com/learn/forex-indicators/weighted-moving-average
-        //OhlcList[0].Close = 77;
-        //OhlcList[1].Close = 79;
-        //OhlcList[2].Close = 79;
-        //OhlcList[3].Close = 81;
-        //OhlcList[4].Close = 83;
+        //OhlcList[0].setClose(77;
+        //OhlcList[1].setClose(79;
+        //OhlcList[2].setClose(79;
+        //OhlcList[3].setClose(81;
+        //OhlcList[4].setClose(83;
 
         SingleDoubleSerie wmaSerie = new SingleDoubleSerie();
 
@@ -51,7 +51,7 @@ public class WMA extends IndicatorCalculatorBase<SingleDoubleSerie>
                 {
                     wma = wma.add(BigDecimal.valueOf(weight))
                             .divide(BigDecimal.valueOf(weightSum), MathContext.DECIMAL64)
-                            .multiply(OhlcList.get(j).Close);
+                            .multiply(OhlcList.get(j).getClose());
                     weight++;
                 }
                 wmaSerie.Values.add(wma);

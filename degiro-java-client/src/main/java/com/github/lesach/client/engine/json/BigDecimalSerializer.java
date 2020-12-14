@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 public class BigDecimalSerializer extends StdSerializer<BigDecimal> {
-    protected BigDecimalSerializer() {
+    public BigDecimalSerializer() {
         super(BigDecimal.class);
     }
 

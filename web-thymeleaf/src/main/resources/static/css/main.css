@@ -1,0 +1,49 @@
+body {
+
+}
+
+@media (min-width: 1800px) {
+    .container {
+        max-width: 1740px;
+    }
+}
+
+@media (min-width: 1600px) and (max-width: 1799px) {
+    .container {
+        max-width: 1540px;
+    }
+}
+
+@media (min-width: 1400px)  and (max-width: 1599px) {
+    .container {
+        max-width: 1340px;
+    }
+}
+
+.navbar-dark {
+    background-color: #CCCCCC;
+}
+
+.starter-template {
+
+}
+
+h1{
+	color:#0000FF;
+}
+
+h2{
+	color:#FF0000;
+}
+
+h3 {
+    font-size: 16px;
+}
+
+input {
+    font-size: 12px;
+}
+
+label {
+    font-size: 12px;
+}

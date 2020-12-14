@@ -29,8 +29,8 @@ public class Ichimoku extends IndicatorCalculatorBase<IchimokuSerie>
         {
             IchimokuSerie ichimokuSerie = new IchimokuSerie();
 
-            List<BigDecimal> highList = OhlcList.stream().map(x -> x.High).collect(Collectors.toList());
-            List<BigDecimal> lowList = OhlcList.stream().map(x -> x.Low).collect(Collectors.toList());
+            List<BigDecimal> highList = OhlcList.stream().map(x -> x.getHigh()).collect(Collectors.toList());
+            List<BigDecimal> lowList = OhlcList.stream().map(x -> x.getLow()).collect(Collectors.toList());
 
             // TurningLine
             List<BigDecimal> runMaxFast = Statistics.RunMax(highList, Fast);
@@ -73,7 +73,7 @@ public class Ichimoku extends IndicatorCalculatorBase<IchimokuSerie>
             }
 
             // shift to left Med
-            List<BigDecimal> laggingSpan = new ArrayList<>();//OhlcList.Select(x => x.Close).ToList();//new BigDecimal[OhlcList.size()];
+            List<BigDecimal> laggingSpan = new ArrayList<>();//OhlcList.Select(x => x.getClose()).ToList();//new BigDecimal[OhlcList.size()];
             for (int i = 0; i < OhlcList.size(); i++)
 			{   
                 laggingSpan.add(null);			    
@@ -82,7 +82,7 @@ public class Ichimoku extends IndicatorCalculatorBase<IchimokuSerie>
             {
                 if (i >= Med - 1)
                 {
-                    laggingSpan.set(i - (Med - 1), OhlcList.get(i).Close);
+                    laggingSpan.set(i - (Med - 1), OhlcList.get(i).getClose());
                 }
             }
             ichimokuSerie.LaggingSpan = laggingSpan;

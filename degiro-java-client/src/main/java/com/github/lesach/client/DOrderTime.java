@@ -1,5 +1,7 @@
 package com.github.lesach.client;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  *
  * @author indiketa
@@ -21,6 +23,7 @@ public enum DOrderTime {
         return value;
     }
 
+    @JsonValue
     public String getStrValue() {
         return strValue;
     }

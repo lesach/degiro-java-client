@@ -75,10 +75,10 @@ import java.math.MathContext;
             int index = startIndex;
             for (int i = startIndex; i <= endIndex; i++)
             {
-                if (min.compareTo(OhlcList.get(i).Low) < 0)
+                if (min.compareTo(OhlcList.get(i).getLow()) < 0)
                     continue;
 
-                min = OhlcList.get(i).Low;
+                min = OhlcList.get(i).getLow();
                 index = i;
             }
             return index;
@@ -90,10 +90,10 @@ import java.math.MathContext;
             int index = startIndex;
             for (int i = startIndex; i <= endIndex; i++)
             {
-                if (max.compareTo(OhlcList.get(i).High) > 0)
+                if (max.compareTo(OhlcList.get(i).getHigh()) > 0)
                     continue;
 
-                max = OhlcList.get(i).High;
+                max = OhlcList.get(i).getHigh();
                 index = i;
             }
             return index;

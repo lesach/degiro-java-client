@@ -35,7 +35,7 @@ public class SMA extends IndicatorCalculatorBase<SingleDoubleSerie>
                 BigDecimal sum = BigDecimal.ZERO;
                 for (int j = i; j >= i - (Period - 1); j--)
                 {
-                    sum = sum.add(OhlcList.get(j).Close);
+                    sum = sum.add(OhlcList.get(j).getClose());
                 }
                 BigDecimal avg = sum.divide(BigDecimal.valueOf(Period), MathContext.DECIMAL64);
                 smaSerie.Values.add(avg);

@@ -38,7 +38,7 @@ import java.util.List;
             SingleDoubleSerie cciSerie = new SingleDoubleSerie();
 
             for (Ohlc ohlc : OhlcList) {
-                ohlc.Close = (ohlc.High.add(ohlc.Low).add(ohlc.Close)).divide(BigDecimal.valueOf(3L), MathContext.DECIMAL64);
+                ohlc.setClose((ohlc.getHigh().add(ohlc.getLow()).add(ohlc.getClose())).divide(BigDecimal.valueOf(3L), MathContext.DECIMAL64));
             }
 
             SMA sma = new SMA(Period);
@@ -53,11 +53,11 @@ import java.util.List;
                     BigDecimal total = BigDecimal.ZERO;
                     for (int j = i; j >= i - (Period - 1); j--)
                     {
-                        total = total.add(smaList.get(i).subtract(OhlcList.get(j).Close).abs());
+                        total = total.add(smaList.get(i).subtract(OhlcList.get(j).getClose()).abs());
                     }
                     meanDeviationList.add(total.divide(new BigDecimal(Period), MathContext.DECIMAL64));
                     
-                    BigDecimal cci = (OhlcList.get(i).Close.subtract(smaList.get(i)))
+                    BigDecimal cci = (OhlcList.get(i).getClose().subtract(smaList.get(i)))
                             .divide(Factor.multiply(meanDeviationList.get(i)), MathContext.DECIMAL64);
                     cciSerie.Values.add(cci);
                 }

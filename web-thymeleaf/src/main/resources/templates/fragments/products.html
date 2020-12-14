@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="search">
+    <h3>Search Product</h3>
+    <form class="md-form">
+        <div class="form-row">
+            <div class="col-md-2 input-with-post-icon" style="padding-top:7px">
+                <input placeholder="Select date" type="text" id="start-time" class="form-control datepicker">
+                <label for="start-time">Try me...</label>
+                <i class="fas fa-calendar input-prefix" tabindex=0></i>
+            </div>
+            <div class="col-md-2 input-with-post-icon" style="padding-top:7px">
+                <input placeholder="Select date" type="text" id="end-time" class="form-control datepicker">
+                <label for="end-time">Try me...</label>
+                <i class="fas fa-calendar input-prefix" tabindex=0></i>
+            </div>
+
+            <div class="form-group col-md-2">
+                <input class="form-control" type="text" id="txt-search-products" name="product" list="product-list"/>
+                <label for="txt-search-products">Product</label>
+                <datalist id="product-list"></datalist>
+                <div class="line"></div>
+            </div>
+            <div class="form-group col-md-2">
+                <input class="btn btn-outline-info rounded-pill btn-block my-4 waves-effect z-depth-0" type="button" id="btn-chart" value="Chart"/>
+            </div>
+        </div>
+    </form>
+    <div class="form-row">
+        <div class="col-2">
+            <div class="md-form mb-0">
+                <input class="form-control" type="text" id="txt-search-indicator" name="product" list="indicator-list"/>
+                <label for="txt-search-indicator">Indicator</label>
+                <datalist id="indicator-list">
+                    <option th:each="row : ${indicatorList}"
+                            th:value="${row.key.indicatorType.strValue}" th:label="${row.key.indicatorType.strValue}" th:data-json="${row.value}">
+                </datalist>
+            </div>
+            <div id="indicator-parameters">
+            </div>
+            <div class="md-form mb-0">
+                <input type="button" id="btn-indicator" value="Add Indicator" class="btn btn-outline-info rounded-pill btn-block my-4 waves-effect z-depth-0"/>
+            </div>
+        </div>
+        <div class="col-10">
+            <div id="graph-container" style="width:75%;">
+                <canvas id="chart" style="width:640px;height:250px"></canvas>
+            </div>
+        </div>
+    </div>
+
+<!-- Chart part -->
+<script>
+var lineChart = null;
+function formatDate(dt) {
+    return `${
+        dt.getFullYear().toString().padStart(4, '0')}-${
+        (dt.getMonth()+1).toString().padStart(2, '0')}-${
+        dt.getDate().toString().padStart(2, '0')} ${
+        dt.getHours().toString().padStart(2, '0')}:${
+        dt.getMinutes().toString().padStart(2, '0')}`;//:${
+        //dt.getSeconds().toString().padStart(2, '0')}`
+}
+
+function fillProductList(btnName, txtName, datalistName) {
+    $("#" + btnName).prop("disabled", true);
+    var value = $("#" + txtName).val();
+    if (value.length >= 3) {
+        var search = {};
+        search["product"] = value;
+        $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(search),
+            dataType: 'json',
+            cache: false,
+            timeout: 600000,
+            url: "/quote/searchproducts",
+            success: function(result) {
+                if (result.products != null) {
+                    $("#" + datalistName).empty();
+                    for(var i=0;i<result.products.length;i++)
+                    {
+                        $("#" + datalistName).append("<option data-id='" + result.products[i].id + "' value='" + result.products[i].name + "' data-json='" +
+                        JSON.stringify(result.products[i]) + "'>" + result.products[i].name + "</option>");
+                    }
+                }
+            },
+            error: function(result) {
+                // Nothing to do
+                $("#" + btnName).prop("disabled", false);
+            },
+            complete: function(result) {
+                $("#" + txtName).prop("disabled", false);
+            }
+        });
+    }
+}
+
+$(function() {
+    // Data Picker Initialization
+    $("#start-time").datetimepicker({
+        datepicker: { showOtherMonths: true },
+        modal: true,
+        footer: true,
+        format: 'yyyy-dd-mm HH:MM'
+    });
+    $("#end-time").datetimepicker({
+        datepicker: { showOtherMonths: true },
+        modal: true,
+        footer: true,
+        format: 'yyyy-dd-mm HH:MM'
+    });
+
+    let endTime = new Date();
+    let startTime = new Date(endTime.getFullYear(), endTime.getMonth()-1, endTime.getDate());
+    $("#start-time").val(formatDate(startTime));
+    $("#end-time").val(formatDate(endTime));
+
+    $("#txt-search-products").on("input", function () {
+        fillProductList("btn-search-products", "txt-search-products", "product-list");
+    });
+
+    $("#btn-chart").click(function(e) {
+        e.preventDefault();
+        $("#btn-chart").prop("disabled", true);
+        var value = $("#txt-search-products").val();
+        var el = $("#product-list").find("*[value='" + value + "']");
+        if (el.length > 0) {
+            var search = {};
+            search["product"] = JSON.stringify(el.data("json"));
+            search["start"] = $("#start-time").val().substring(0, 16);
+            search["end"] = $("#end-time").val().substring(0, 16);
+            search["resolution"] = "P1D";
+            $.ajax({
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(search),
+                dataType: 'json',
+                cache: false,
+                timeout: 600000,
+                url: "/quote/chart",
+                success: function(result) {
+                    //alert(JSON.stringify(result));
+                    $('#chart').remove(); // this is my <canvas> element
+                    $('#graph-container').append('<canvas id="chart" style="width:640px;height:250px"><canvas>');
+                    canvas = document.querySelector('#chart');
+                    $("#chart").empty();
+                    var ctx = canvas.getContext('2d');
+                    lineChart = new Chart(ctx, result);
+                },
+                error: function(result) {
+                    //alert('error');
+                },
+                complete: function(result) {
+                    $("#btn-chart").prop("disabled", false);
+                }
+            });
+        }
+    });
+});
+</script>
+<!-- Indicator part -->
+<script>
+function fillIndicatorParameters(txtName, rootName, datalistName) {
+    var value = $("#" + txtName).val();
+    var el = $("#" + datalistName).find("*[value='" + value + "']");
+    if (el.length > 0) {
+        var parameters = el.data("json").parameters;
+        var html = '';
+        if (parameters != undefined) {
+            for(var p in parameters) {
+                html += '<div class="md-form mb-0">';
+                html += '<label for="' + parameters[p].name + '" >' + parameters[p].name + '</label>';
+                html += '<input class="form-control" type="text" data-type="parameter" id="' + parameters[p].name + '"></input>';
+                html += '</div>';
+                $('#' + rootName).append(html);
+                html = '';
+            }
+        }
+    }
+}
+
+$(function() {
+    $("#txt-search-indicator").on("input", function () {
+        fillIndicatorParameters("txt-search-indicator", "indicator-parameters", "indicator-list");
+    });
+
+    $("#btn-indicator").click(function(e) {
+        e.preventDefault();
+        $("#btn-chart").prop("disabled", true);
+        var value = $("#txt-search-indicator").val();
+        var el = $("#indicator-list").find("*[value='" + value + "']");
+        if (el != undefined) {
+            var search = {};
+            var indicator = el.data("json");
+            var parametersArray = [];
+            for (p in indicator.parameters) {
+                indicator.parameters[p].value = $("#indicator-parameters").find("#" + indicator.parameters[p].name).val();
+            }
+            search["indicator"] = JSON.stringify(indicator);
+            canvas = document.querySelector('#chart');
+            search["chart"] = JSON.stringify(lineChart.data.datasets[0].data);
+            $.ajax({
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(search),
+                dataType: 'json',
+                cache: false,
+                timeout: 600000,
+                url: "/quote/indicator",
+                success: function(result) {
+                    //alert(JSON.stringify(result));
+                    // You add the newly created dataset to the list of `data`
+                    lineChart.data.datasets.push(result);
+                    // You update the chart to take into account the new dataset
+                    lineChart.update();
+                },
+                error: function(result) {
+                    alert('error');
+                },
+                complete: function(result) {
+                    $("#btn-chart").prop("disabled", false);
+                }
+            });
+        }
+    });
+});
+
+function checkValue(element) {
+  // check if the input has any value (if we've typed into it)
+  if ($(element).val())
+    $(element).addClass('has-value');
+  else
+    $(element).removeClass('has-value');
+}
+
+$(document).ready(function() {
+  // Run on page load
+  $('.form-control').each(function() {
+    checkValue(this);
+  })
+  // Run on input exit
+  $('.form-control').blur(function() {
+    checkValue(this);
+  });
+
+});
+</script>
+</div>
+</body>
+</html>

@@ -20,7 +20,7 @@ public class Statistics
             S = S.add(value.subtract(tmpM).multiply(value.subtract(M)));
             k = k.add(BigDecimal.ONE);
         }
-        return S.divide(k.subtract(BigDecimal.valueOf(2L)), RoundingMode.HALF_UP).sqrt(MathContext.DECIMAL64);
+        return BigDecimal.valueOf(Math.sqrt(S.divide(k.subtract(BigDecimal.valueOf(2L)), RoundingMode.HALF_UP).doubleValue()));
     }
 
     public static List<BigDecimal> RunMax(List<BigDecimal> list, int period)

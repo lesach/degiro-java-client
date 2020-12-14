@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
 
 public class DOrderTypeSerializer extends StdSerializer<DOrderType> {
-    protected DOrderTypeSerializer() {
+    public DOrderTypeSerializer() {
         super(DOrderType.class);
     }
 

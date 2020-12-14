@@ -232,9 +232,7 @@ public class DEngine {
 
     public List<Product> getPortfolio() {
         List<Product> products = new LinkedList<>();
-        for (Product value : productMap.values()) {
-            products.add(value);
-        }
+        products.addAll(productMap.values());
         System.out.println(products.size());
         return products;
     }

@@ -14,7 +14,7 @@ public class Momentum extends IndicatorCalculatorBase<SingleDoubleSerie>
 
         for (int i = 1; i < OhlcList.size(); i++)
         {
-            momentumSerie.Values.add(OhlcList.get(i).Close.subtract(OhlcList.get(i - 1).Close));
+            momentumSerie.Values.add(OhlcList.get(i).getClose().subtract(OhlcList.get(i - 1).getClose()));
         }
 
         return momentumSerie;

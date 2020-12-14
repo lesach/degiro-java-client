@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
  */
 public interface DeGiro {
 
+    void ensureLogged() throws DeGiroException;
+
     DCashFunds getCashFunds() throws DeGiroException;
 
     DLastTransactions getLastTransactions() throws DeGiroException;
@@ -55,7 +57,7 @@ public interface DeGiro {
 
     DPriceHistory getPriceHistory(Long issueId) throws DeGiroException;
 
-    DPriceHistory getPriceHistory(String vwdIdentifierType, String vwdId, LocalDateTime start, LocalDateTime end, String resolution);
+    DPriceHistory getPriceHistory(String vwdIdentifierType, String vwdId, LocalDateTime start, LocalDateTime end, String resolution) throws DeGiroException;
 
     boolean isConnected();
 

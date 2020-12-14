@@ -1,13 +1,17 @@
 package com.github.lesach.client;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.util.List;
 
-// [DataContract]
+@Getter
+@Setter
 public class DPriceHistorySerieData
 {
     // [IgnoreDataMember]
-    public List<BigDecimal[]> prices;
+    private List<BigDecimal[]> prices;
     // [IgnoreDataMember]
-    public DPriceHistoryDataProduct product;
+    private DPriceHistoryDataProduct product;
 }

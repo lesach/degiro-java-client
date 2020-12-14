@@ -9,6 +9,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 public class LocalTimeSerializer  extends StdSerializer<LocalTime> {
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     protected LocalTimeSerializer() {
         super(LocalTime.class);
     }
@@ -17,6 +19,9 @@ public class LocalTimeSerializer  extends StdSerializer<LocalTime> {
     public void serialize(
             LocalTime value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException {
-        jgen.writeString(value.format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+        if (value == null)
+            jgen.writeNull();
+        else
+            jgen.writeString(value.format(dateTimeFormatter));
     }
 }

@@ -1,8 +1,7 @@
 package com.github.lesach.client.log;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -10,21 +9,21 @@ import org.apache.logging.log4j.Logger;
  */
 public class DLog {
 
-    private static final Logger logger = LogManager.getLogger(DLog.class);
+    private static final Logger logger = LoggerFactory.getLogger(DLog.class);
 
-    public static void debug(Object message) {
+    public static void debug(String message) {
         logger.debug(message);
     }
 
-    public static void debug(Object message, Throwable t) {
+    public static void debug(String message, Throwable t) {
         logger.debug(message, t);
     }
 
-    public static void error(Object message) {
+    public static void error(String message) {
         logger.error(message);
     }
 
-    public static void error(Object message, Throwable t) {
+    public static void error(String message, Throwable t) {
         logger.error(message, t);
     }
 
@@ -32,19 +31,19 @@ public class DLog {
         return logger.isErrorEnabled();
     }
 
-    public static void warn(Object message) {
+    public static void warn(String message) {
         logger.warn(message);
     }
 
-    public static void warn(Object message, Throwable t) {
+    public static void warn(String message, Throwable t) {
         logger.warn(message, t);
     }
     
-    public static void info(Object message) {
+    public static void info(String message) {
         logger.info(message);
     }
 
-    public static void info(Object message, Throwable t) {
+    public static void info(String message, Throwable t) {
         logger.info(message, t);
     }
 
@@ -52,27 +51,27 @@ public class DLog {
         return logger.isWarnEnabled();
     }
 
-    public static void fatal(Object message) {
-        logger.fatal(message);
+    public static void fatal(String message) {
+        logger.error(message);
     }
 
-    public static void fatal(Object message, Throwable t) {
-        logger.fatal(message, t);
+    public static void fatal(String message, Throwable t) {
+        logger.error(message, t);
     }
 
     public static boolean isFatalEnabled() {
-        return logger.isFatalEnabled();
+        return logger.isErrorEnabled();
     }
 
     public static boolean isInfoEnabled() {
         return logger.isInfoEnabled();
     }
 
-    public static void trace(Object message) {
+    public static void trace(String message) {
         logger.trace(message);
     }
 
-    public static void trace(Object message, Throwable t) {
+    public static void trace(String message, Throwable t) {
         logger.trace(message, t);
     }
 

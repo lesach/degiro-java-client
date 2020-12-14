@@ -32,7 +32,7 @@ public  SingleDoubleSerie Calculate()
             // assign EMA values to Close price
             for (int i = 0; i < OhlcList.size(); i++)
             {
-                OhlcList.get(i).Close = emaValues.get(i)  != null ? emaValues.get(i) : BigDecimal.ZERO;
+                OhlcList.get(i).setClose(emaValues.get(i)  != null ? emaValues.get(i) : BigDecimal.ZERO);
             }
 
             ema.Load(OhlcList.stream().skip(Period - 1).collect(Collectors.toList()));

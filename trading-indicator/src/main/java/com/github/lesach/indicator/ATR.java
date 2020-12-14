@@ -41,9 +41,9 @@ import java.util.stream.Collectors;
 
             for (int i = 1; i < OhlcList.size(); i++)
             {
-                BigDecimal trueHigh = OhlcList.get(i).High.max(OhlcList.get(i - 1).Close);
+                BigDecimal trueHigh = OhlcList.get(i).getHigh().max(OhlcList.get(i - 1).getClose());
                 atrSerie.TrueHigh.add(trueHigh);
-                BigDecimal trueLow = OhlcList.get(i).Low.min(OhlcList.get(i - 1).Close);
+                BigDecimal trueLow = OhlcList.get(i).getLow().min(OhlcList.get(i - 1).getClose());
                 atrSerie.TrueLow.add(trueLow);
                 BigDecimal trueRange = trueHigh.subtract(trueLow);
                 atrSerie.TrueRange.add(trueRange);    
@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 
             for (int i = 1; i < OhlcList.size(); i++)
             {
-                OhlcList.get(i).Close = atrSerie.TrueRange.get(i);
+                OhlcList.get(i).setClose(atrSerie.TrueRange.get(i));
             }
 
             EMA ema = new EMA(Period, true);

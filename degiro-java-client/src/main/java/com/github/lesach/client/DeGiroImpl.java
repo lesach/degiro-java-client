@@ -1,5 +1,8 @@
 package com.github.lesach.client;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.lesach.client.exceptions.DInvalidCredentialsException;
 import com.github.lesach.client.exceptions.DUnauthorizedException;
 import com.github.lesach.client.exceptions.DeGiroException;
@@ -21,9 +24,15 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -43,10 +52,15 @@ import org.apache.http.message.BasicHeader;
  */
 public class DeGiroImpl implements DeGiro {
 
+    private final DateTimeFormatter zoneDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssXXX");
     private final DCredentials credentials;
     private final DCommunication comm;
     private final DSession session;
     private final Gson gson;
+    private final ObjectMapper json = new ObjectMapper() {{
+        configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }};
     private final List<DPriceListener> priceListener = new ArrayList<>();
     private long pollingInterval = TimeUnit.SECONDS.toMillis(5);
     private Timer pricePoller = null;
@@ -60,6 +74,7 @@ public class DeGiroImpl implements DeGiro {
     private String currency = "EUR";
 
     protected DeGiroImpl(DCredentials credentials, DSession session) {
+        DLog.debug("Degiro Client implementation creation");
         this.session = session;
         this.credentials = credentials;
         this.comm = new DCommunication(this.session);
@@ -71,13 +86,12 @@ public class DeGiroImpl implements DeGiro {
         builder.registerTypeAdapter(Date.class, new DUtils.DateTypeAdapter());
         this.gson = builder.create();
         this.subscribedVwdIssues = new HashMap<>(500);
-
     }
 
     @Override
     public DPortfolioProducts getPortfolio() throws DeGiroException {
 
-        DPortfolioProducts portfolio = null;
+        DPortfolioProducts portfolio;
         ensureLogged();
 
         try {
@@ -96,7 +110,7 @@ public class DeGiroImpl implements DeGiro {
     @Override
     public DPortfolioSummary getPortfolioSummary() throws DeGiroException {
 
-        DPortfolioSummary portfolioSummary = null;
+        DPortfolioSummary portfolioSummary;
         ensureLogged();
 
         try {
@@ -114,7 +128,7 @@ public class DeGiroImpl implements DeGiro {
     @Override
     public DCashFunds getCashFunds() throws DeGiroException {
 
-        DCashFunds cashFunds = null;
+        DCashFunds cashFunds;
         ensureLogged();
 
         try {
@@ -130,7 +144,7 @@ public class DeGiroImpl implements DeGiro {
     @Override
     public List<DOrder> getOrders() throws DeGiroException {
 
-        DOrders orders = null;
+        DOrders orders;
         ensureLogged();
 
         try {
@@ -146,7 +160,7 @@ public class DeGiroImpl implements DeGiro {
     @Override
     public DLastTransactions getLastTransactions() throws DeGiroException {
 
-        DLastTransactions transactions = null;
+        DLastTransactions transactions;
         ensureLogged();
 
         try {
@@ -162,14 +176,14 @@ public class DeGiroImpl implements DeGiro {
     @Override
     public DTransactions getTransactions(Calendar from, Calendar to) throws DeGiroException {
 
-        DTransactions transactions = null;
+        DTransactions transactions;
         ensureLogged();
 
         try {
             String fromStr = from.get(Calendar.DATE) + "%2F" + (from.get(Calendar.MONTH) + 1) + "%2F" + from.get(Calendar.YEAR);
             String toStr = to.get(Calendar.DATE) + "%2F" + (to.get(Calendar.MONTH) + 1) + "%2F" + to.get(Calendar.YEAR);
 
-            DResponse response = comm.getUrlData(session.getConfig().getReportingUrl(), "v4/transactions?orderId=&product=&fromDate=" + fromStr + "&toDate=" + toStr + "&groupTransactionsByOrder=false&intAccount=" + session.getClient().getIntAccount() + "&sessionId=" + session.getJSessionId(), null);
+            DResponse response = comm.getUrlData(session.getConfig().getData().getReportingUrl(), "v4/transactions?orderId=&product=&fromDate=" + fromStr + "&toDate=" + toStr + "&groupTransactionsByOrder=false&intAccount=" + session.getClient().getData().getIntAccount() + "&sessionId=" + session.getJSessionId(), null);
             transactions = gson.fromJson(getResponseData(response), DTransactions.class);
         } catch (IOException e) {
             throw new DeGiroException("IOException while retrieving transactions", e);
@@ -178,7 +192,8 @@ public class DeGiroImpl implements DeGiro {
 
     }
 
-    private void ensureLogged() throws DeGiroException {
+    @Override
+    public void ensureLogged() throws DeGiroException {
         if (Strings.isNullOrEmpty(session.getJSessionId())) {
             login();
         }
@@ -204,7 +219,7 @@ public class DeGiroImpl implements DeGiro {
             response = comm.getUrlData(BASE_TRADER_URL, "/login/secure/config", null);
             session.setConfig(gson.fromJson(getResponseData(response), DConfig.class));
 
-            response = comm.getUrlData(session.getConfig().getPaUrl(), "client?sessionId=" + session.getJSessionId(), null);
+            response = comm.getUrlData(session.getConfig().getData().getPaUrl(), "client?sessionId=" + session.getJSessionId(), null);
             session.setClient(gson.fromJson(getResponseData(response), DClient.class));
 
         } catch (IOException e) {
@@ -229,10 +244,10 @@ public class DeGiroImpl implements DeGiro {
 
         try {
             List<Header> headers = new ArrayList<>(1);
-            headers.add(new BasicHeader("Origin", session.getConfig().getTradingUrl()));
-            HashMap<String, String> data = new HashMap();
+            headers.add(new BasicHeader("Origin", session.getConfig().getData().getTradingUrl()));
+            HashMap<String, String> data = new HashMap<>();
             data.put("referrer", "https://trader.degiro.nl");
-            DResponse response = comm.getUrlData("https://degiro.quotecast.vwdservices.com/CORS", "/request_session?version=1.0.20170315&userToken=" + session.getClient().getId(), data, headers);
+            DResponse response = comm.getUrlData("https://degiro.quotecast.vwdservices.com/CORS", "/request_session?version=1.0.20170315&userToken=" + session.getClient().getData().getId(), data, headers);
             HashMap map = gson.fromJson(getResponseData(response), HashMap.class);
             session.setVwdSession((String) map.get("sessionId"));
             session.setLastVwdSessionUsed(System.currentTimeMillis());
@@ -274,10 +289,6 @@ public class DeGiroImpl implements DeGiro {
     @Override
     public synchronized void subscribeToPrice(Collection<String> vwdIssueId) throws DeGiroException {
 
-        if (priceListener == null) {
-            throw new DeGiroException("PriceListener not set");
-        }
-
         try {
 
             for (String issueId : vwdIssueId) {
@@ -303,7 +314,7 @@ public class DeGiroImpl implements DeGiro {
     private void requestPriceUpdate() throws DeGiroException, IOException {
         ensureVwdSession();
         List<Header> headers = new ArrayList<>(1);
-        headers.add(new BasicHeader("Origin", session.getConfig().getTradingUrl()));
+        headers.add(new BasicHeader("Origin", session.getConfig().getData().getTradingUrl()));
 
         HashMap<String, String> data = new HashMap<>();
         data.put("controlData", generatePriceRequestPayload());
@@ -316,14 +327,14 @@ public class DeGiroImpl implements DeGiro {
 
     private String generatePriceRequestPayload() {
 
-        String requestedIssues = "";
+        StringBuilder requestedIssues = new StringBuilder();
         for (String issueId : subscribedVwdIssues.keySet()) {
             Long last = subscribedVwdIssues.get(issueId);
             if (last == null || last > pollingInterval) {
-                requestedIssues += "req(X.BidPrice);req(X.AskPrice);req(X.LastPrice);req(X.LastTime);".replace("X", issueId + "");
+                requestedIssues.append("req(X.BidPrice);req(X.AskPrice);req(X.LastPrice);req(X.LastTime);".replace("X", issueId + ""));
             }
         }
-        return requestedIssues;
+        return requestedIssues.toString();
 
     }
 
@@ -333,18 +344,16 @@ public class DeGiroImpl implements DeGiro {
         try {
             requestPriceUpdate();
             List<Header> headers = new ArrayList<>(1);
-            headers.add(new BasicHeader("Origin", session.getConfig().getTradingUrl()));
+            headers.add(new BasicHeader("Origin", session.getConfig().getData().getTradingUrl()));
 
             DResponse response = comm.getUrlData("https://degiro.quotecast.vwdservices.com/CORS", "/" + session.getVwdSession(), null, headers);
             List<DRawVwdPrice> data = gson.fromJson(getResponseData(response), rawPriceData);
 
             List<DPrice> prices = DUtils.convert(data);
 
-            if (priceListener != null) {
-                for (DPrice price : prices) {
-                    for(DPriceListener pl : priceListener)
-                        pl.priceChanged(price);
-                }
+            for (DPrice price : prices) {
+                for(DPriceListener pl : priceListener)
+                    pl.priceChanged(price);
             }
 
         } catch (IOException e) {
@@ -368,7 +377,7 @@ public class DeGiroImpl implements DeGiro {
     @Override
     public DProductDescriptions getProducts(List<Long> productIds) throws DeGiroException {
 
-        DProductDescriptions products = null;
+        DProductDescriptions products;
 
         ensureLogged();
         try {
@@ -377,7 +386,7 @@ public class DeGiroImpl implements DeGiro {
             for (Long productId : productIds) {
                 productIdStr.add(productId + "");
             }
-            DResponse response = comm.getUrlData(session.getConfig().getProductSearchUrl(), "v5/products/info?intAccount=" + session.getClient().getIntAccount() + "&sessionId=" + session.getJSessionId(), productIdStr, headers);
+            DResponse response = comm.getUrlData(session.getConfig().getData().getProductSearchUrl(), "v5/products/info?intAccount=" + session.getClient().getData().getIntAccount() + "&sessionId=" + session.getJSessionId(), productIdStr, headers);
             products = gson.fromJson(getResponseData(response), DProductDescriptions.class);
 
         } catch (IOException e) {
@@ -394,12 +403,12 @@ public class DeGiroImpl implements DeGiro {
             throw new DeGiroException("Nothing to search");
         }
 
-        DProductSearch productSearch = null;
+        DProductSearch productSearch;
 
         ensureLogged();
         try {
 
-            String qs = "&searchText=" + text;
+            String qs = "&searchText=" + encodeValue(text) + "&requireTotal=true&sortColumns=name&sortTypes=asc";
 
             if (type != null && type.getTypeCode() != 0) {
                 qs += "&productTypeId=" + type.getTypeCode();
@@ -408,9 +417,10 @@ public class DeGiroImpl implements DeGiro {
             if (offset > 0) {
                 qs += "&offset=" + offset;
             }
-
-            DResponse response = comm.getUrlData(session.getConfig().getProductSearchUrl(), "v5/products/lookup?intAccount=" + session.getClient().getIntAccount() + "&sessionId=" + session.getJSessionId() + qs, null);
-            productSearch = gson.fromJson(getResponseData(response), DProductSearch.class);
+            // https://trader.degiro.nl/product_search/secure/v5/stocks?searchText=CA&requireTotal=true&sortColumns=name&sortTypes=asc&intAccount=11006752&sessionId=FEB76426B8ACEB3914E57A8B20D647E9.prod_b_113_5
+            // https://trader.degiro.nl/product_search/secure/v5/products/lookup?intAccount=0&sessionId=15F3D9AB7B60B24BB07A15C5AD4AA870.prod_b_113_5&searchText=CAC&limit=10 >> HTTP 404
+            DResponse response = comm.getUrlData(session.getConfig().getData().getProductSearchUrl(), "v5/products/lookup?intAccount=" + session.getClient().getData().getIntAccount() + "&sessionId=" + session.getJSessionId() + qs, null);
+            productSearch = json.readValue(getResponseData(response), DProductSearch.class);
 
         } catch (IOException e) {
             throw new DeGiroException("IOException while retrieving product information", e);
@@ -426,10 +436,10 @@ public class DeGiroImpl implements DeGiro {
             throw new DeGiroException("Order was null (no order to check)");
         }
 
-        DOrderConfirmation orderConfirmation = null;
+        DOrderConfirmation orderConfirmation;
         ensureLogged();
         try {
-            DResponse response = comm.getUrlData(session.getConfig().getTradingUrl(), "v5/checkOrder;jsessionid=" + session.getJSessionId() + "?intAccount=" + session.getClient().getIntAccount() + "&sessionId=" + session.getJSessionId(), orderToMap(order));
+            DResponse response = comm.getUrlData(session.getConfig().getData().getTradingUrl(), "v5/checkOrder;jsessionid=" + session.getJSessionId() + "?intAccount=" + session.getClient().getData().getIntAccount() + "&sessionId=" + session.getJSessionId(), orderToMap(order));
             orderConfirmation = gson.fromJson(getResponseData(response), DOrderConfirmation.class);
         } catch (IOException e) {
             throw new DeGiroException("IOException while checking order", e);
@@ -449,11 +459,11 @@ public class DeGiroImpl implements DeGiro {
             throw new DeGiroException("ConfirmationId was empty");
         }
 
-        DPlacedOrder placedOrder = null;
+        DPlacedOrder placedOrder;
 
         ensureLogged();
         try {
-            DResponse response = comm.getUrlData(session.getConfig().getTradingUrl(), "v5/order/" + confirmationId + ";jsessionid=" + session.getJSessionId() + "?intAccount=" + session.getClient().getIntAccount() + "&sessionId=" + session.getJSessionId(), orderToMap(order));
+            DResponse response = comm.getUrlData(session.getConfig().getData().getTradingUrl(), "v5/order/" + confirmationId + ";jsessionid=" + session.getJSessionId() + "?intAccount=" + session.getClient().getData().getIntAccount() + "&sessionId=" + session.getJSessionId(), orderToMap(order));
             placedOrder = gson.fromJson(getResponseData(response), DPlacedOrder.class);
         } catch (IOException e) {
             throw new DeGiroException("IOException while checking order", e);
@@ -470,11 +480,11 @@ public class DeGiroImpl implements DeGiro {
             throw new DeGiroException("orderId was empty");
         }
 
-        DPlacedOrder placedOrder = null;
+        DPlacedOrder placedOrder;
 
         ensureLogged();
         try {
-            DResponse response = comm.getUrlData(session.getConfig().getTradingUrl(), "v5/order/" + orderId + ";jsessionid=" + session.getJSessionId() + "?intAccount=" + session.getClient().getIntAccount() + "&sessionId=" + session.getJSessionId(), null, null, "DELETE");
+            DResponse response = comm.getUrlData(session.getConfig().getData().getTradingUrl(), "v5/order/" + orderId + ";jsessionid=" + session.getJSessionId() + "?intAccount=" + session.getClient().getData().getIntAccount() + "&sessionId=" + session.getJSessionId(), null, null, "DELETE");
             placedOrder = gson.fromJson(getResponseData(response), DPlacedOrder.class);
         } catch (IOException e) {
             throw new DeGiroException("IOException while checking order", e);
@@ -491,12 +501,12 @@ public class DeGiroImpl implements DeGiro {
             throw new NullPointerException("Order was null");
         }
 
-        DPlacedOrder placedOrder = null;
+        DPlacedOrder placedOrder;
 
         ensureLogged();
         try {
 
-            Map degiroOrder = new HashMap();
+            Map<String, Object> degiroOrder = new HashMap<>();
             degiroOrder.put("buysell", order.getBuysell().getValue());
             degiroOrder.put("orderType", order.getOrderType().getValue());
             degiroOrder.put("productId", order.getProductId());
@@ -509,7 +519,7 @@ public class DeGiroImpl implements DeGiro {
                 degiroOrder.put("stopPrice", stop.toPlainString());
             }
 
-            DResponse response = comm.getUrlData(session.getConfig().getTradingUrl(), "v5/order/" + order.getId() + ";jsessionid=" + session.getJSessionId() + "?intAccount=" + session.getClient().getIntAccount() + "&sessionId=" + session.getJSessionId(), degiroOrder, null, "PUT");
+            DResponse response = comm.getUrlData(session.getConfig().getData().getTradingUrl(), "v5/order/" + order.getId() + ";jsessionid=" + session.getJSessionId() + "?intAccount=" + session.getClient().getData().getIntAccount() + "&sessionId=" + session.getJSessionId(), degiroOrder, null, "PUT");
             placedOrder = gson.fromJson(getResponseData(response), DPlacedOrder.class);
         } catch (IOException e) {
             throw new DeGiroException("IOException while checking order", e);
@@ -522,12 +532,12 @@ public class DeGiroImpl implements DeGiro {
     @Override
     public DPriceHistory getPriceHistory(Long issueId) throws DeGiroException {
 
-        DPriceHistory priceHistory = null;
+        DPriceHistory priceHistory;
 
         ensureLogged();
         try {
 
-            DResponse response = comm.getGraph(session, "series=price%3Aissueid%3A" + issueId);
+            DResponse response = comm.getGraph(session, "series=price%3Aissueid%3A" + issueId, "PT1M");
             priceHistory = gson.fromJson(getResponseData(response), DPriceHistory.class);
         } catch (IOException e) {
             throw new DeGiroException("IOException while retrieving price data", e);
@@ -536,13 +546,49 @@ public class DeGiroImpl implements DeGiro {
         return priceHistory;
     }
 
-    @Override
-    public DPriceHistory getPriceHistory(String vwdIdentifierType, String vwdId, LocalDateTime start, LocalDateTime end, String resolution) {
-        return null;
+    private String encodeValue(String value) throws UnsupportedEncodingException {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
     }
 
-    private Map orderToMap(DNewOrder order) {
-        Map degiroOrder = new HashMap();
+    @Override
+    public DPriceHistory getPriceHistory(String vwdIdentifierType, String vwdId, LocalDateTime start, LocalDateTime end, String resolution) throws DeGiroException {
+        DPriceHistory priceHistory;
+        try
+        {
+            ensureLogged();
+            String startOffset = start.atOffset(OffsetDateTime.now().getOffset()).format(zoneDateTimeFormatter).replace(' ', 'T');
+            String endOffset = end.plusHours(23).plusMinutes(59).plusSeconds(59).atOffset(OffsetDateTime.now().getOffset()).format(zoneDateTimeFormatter).replace(' ', 'T');;
+            // &start=2019-04-25T00:00:00+02:00&end=2019-04-25T23:59:59+02:00
+            DResponse response = comm.getGraph(session, "series=" + vwdIdentifierType + "%3A" + encodeValue(vwdId) +
+                            "&series=price%3A" + vwdIdentifierType + "%3A" + encodeValue(vwdId) +
+                            "&start=" + encodeValue(startOffset) +
+                            ((start.compareTo(end) < 0) ? "&end=" + encodeValue(endOffset) : "&period=P1D")
+                    , resolution);
+            priceHistory = json.readValue(getResponseData(response), DPriceHistory.class);
+            // MAJ time according to resolution
+            priceHistory.NormalizeResolution();
+        }
+        catch (IOException | DeGiroException e)
+        {
+            throw new DeGiroException("IOException while retrieving price data", e);
+        }
+
+        return priceHistory;
+    }
+
+
+    public DPriceHistory getPriceHistory(String vwdIdentifierType,
+                                         String vwdId,
+                                         LocalDateTime start) throws DeGiroException {
+        return getPriceHistory(vwdIdentifierType,
+                vwdId,
+                start,
+                start.plusHours(23).plusMinutes(59).plusSeconds(59),
+                "PT1M");
+    }
+
+    private Map<String, Object> orderToMap(DNewOrder order) {
+        Map<String, Object> degiroOrder = new HashMap<>();
         degiroOrder.put("buysell", order.getAction().getValue());
         degiroOrder.put("orderType", order.getOrderType().getValue());
         degiroOrder.put("productId", order.getProductId());
@@ -561,7 +607,7 @@ public class DeGiroImpl implements DeGiro {
     private String getResponseData(DResponse response) throws DeGiroException {
 
         DLog.info(response.getMethod() + " " + response.getUrl() + " >> HTTP " + response.getStatus());
-        String data = null;
+        String data;
 
         if (response.getStatus() == 401) {
             DLog.warn("Session expired, clearing session tokens");

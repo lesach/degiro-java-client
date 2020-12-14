@@ -1,5 +1,7 @@
 package com.github.lesach.strategy;
 
+import java.util.List;
+
 public enum EIndicatorType
 {
     Last(1, "Last"),
@@ -38,7 +40,7 @@ public enum EIndicatorType
     private final int value;
     private final String strValue;
 
-    private EIndicatorType(int value, String strValue) {
+    EIndicatorType(int value, String strValue) {
         this.value = value;
         this.strValue = strValue;
     }

@@ -3,6 +3,7 @@
 package com.github.lesach.strategy.engine;
 
 import com.github.lesach.client.*;
+import com.github.lesach.client.exceptions.DeGiroException;
 import com.github.lesach.strategy.DeGiroClientInterface;
 import com.github.lesach.strategy.EIndicatorType;
 import com.github.lesach.strategy.ETimeSerieResolutionType;
@@ -46,10 +47,10 @@ public class EngineProduct
     /// </summary>
     public void RefreshIndicators()
     {
-        EngineSerieValues lastSerieValues = Series.stream().filter(ser -> ser.Key.getIndicator().IndicatorType == EIndicatorType.Last).findFirst().orElse(null);
+        EngineSerieValues lastSerieValues = Series.stream().filter(ser -> ser.Key.getIndicator().getIndicatorType() == EIndicatorType.Last).findFirst().orElse(null);
         if (lastSerieValues != null)
         {
-            Series.stream().filter(e -> (e.Key.getIndicator().IndicatorType.getValue() > 10) && (e.LastUpdate.isBefore(lastSerieValues.LastUpdate)))
+            Series.stream().filter(e -> (e.Key.getIndicator().getIndicatorType().getValue() > 10) && (e.LastUpdate.isBefore(lastSerieValues.LastUpdate)))
                 .forEach(engineSerieValues ->
             {
                 indicatorProvider.ComputeIndicator(lastSerieValues.Values, Resolution, engineSerieValues.Key.getIndicator())
@@ -67,8 +68,7 @@ public class EngineProduct
     /// <summary>
     /// Initialize
     /// </summary>
-    public void Initialize(LocalDateTime start, LocalDateTime end)
-    {
+    public void Initialize(LocalDateTime start, LocalDateTime end) throws DeGiroException {
         DPriceHistory priceHistory = deGiroClient.GetPriceHistory(Product.getVwdIdentifierType(),
                         Product.getVwdId(),
                         start,
@@ -76,23 +76,23 @@ public class EngineProduct
                         Resolution.toString());
         DPriceHistorySerie priceSerieData = null;
         DPriceHistorySerie productSerieData = null;
-        for (DPriceHistorySerie s : priceHistory.series)
+        for (DPriceHistorySerie s : priceHistory.getSeries())
         {
-            if (s.data != null)
+            if (s.getData() != null)
             {
-                if (s.data.prices != null)
+                if (s.getData().getPrices() != null)
                     priceSerieData = s;
-                if (s.data.product != null)
+                if (s.getData().getProduct() != null)
                     productSerieData = s;
             }
         }
         if (productSerieData != null && priceSerieData != null)
         {
             // If prices are present
-            if (productSerieData.data.product.windowFirst != null)
+            if (productSerieData.getData().getProduct().getWindowFirst() != null)
             {
 
-                EngineSerieValues engineSerieValues = Series.stream().filter(d -> d.Key.getIndicator().IndicatorType == EIndicatorType.Last).findFirst().orElse(null);
+                EngineSerieValues engineSerieValues = Series.stream().filter(d -> d.Key.getIndicator().getIndicatorType() == EIndicatorType.Last).findFirst().orElse(null);
                 if (engineSerieValues == null)
                 {
                     engineSerieValues = new EngineSerieValues(new SerieKey() {{ setProduct(Product);
@@ -113,22 +113,22 @@ public class EngineProduct
         List<MeasureModel> result = new ArrayList<MeasureModel>();
         DPriceHistorySerie priceSerieData = null;
         DPriceHistorySerie productSerieData = null;
-        for (DPriceHistorySerie s : priceHistory.series)
+        for (DPriceHistorySerie s : priceHistory.getSeries())
         {
-            if (s.data != null)
+            if (s.getData() != null)
             {
-                if (s.data.prices != null)
+                if (s.getData().getPrices() != null)
                     priceSerieData = s;
-                if (s.data.product != null)
+                if (s.getData().getProduct() != null)
                     productSerieData = s;
             }
         }
         if (productSerieData != null && priceSerieData != null)
         {
             // If prices are present
-            if (productSerieData.data.product.windowFirst !=null)
+            if (productSerieData.getData().getProduct().getWindowFirst() !=null)
             {
-                Map<BigDecimal, List<BigDecimal[]>> m = priceSerieData.data.prices
+                Map<BigDecimal, List<BigDecimal[]>> m = priceSerieData.getData().getPrices()
                         .stream()
                         .collect(Collectors.groupingBy(a -> a[0]));
 
@@ -144,7 +144,7 @@ public class EngineProduct
                     DPriceHistorySerie t = productSerieData;
                     result.add(new MeasureModel()
                     {{
-                        setDateTime(t.data.product.windowStart.plusSeconds(d.get(0).setScale(0, RoundingMode.HALF_UP).longValue()));
+                        setDateTime(t.getData().getProduct().getWindowFirst().plusSeconds(d.get(0).setScale(0, RoundingMode.HALF_UP).longValue()));
                         setValue(d.get(1));
                     }});
                 }
@@ -163,7 +163,7 @@ public class EngineProduct
     {
         if (price.compareTo(BigDecimal.ZERO) > 0)
         {
-            EngineSerieValues engineSerieValues = Series.stream().filter(d -> d.Key.getIndicator().IndicatorType == EIndicatorType).findFirst().orElse(null);
+            EngineSerieValues engineSerieValues = Series.stream().filter(d -> d.Key.getIndicator().getIndicatorType() == EIndicatorType).findFirst().orElse(null);
             if (engineSerieValues != null)
                 engineSerieValues.AddValue(dateTime, price);
         }
