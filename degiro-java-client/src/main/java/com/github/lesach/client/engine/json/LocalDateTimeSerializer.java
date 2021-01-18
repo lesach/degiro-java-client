@@ -22,6 +22,8 @@ public class LocalDateTimeSerializer extends StdSerializer<LocalDateTime> {
             throws IOException {
         if (value == null)
             jgen.writeNull();
+        else if (LocalDateTime.MIN.equals(value) || LocalDateTime.MAX.equals(value))
+            jgen.writeNull();
         else
             jgen.writeString(value.format(dateTimeFormatter).replace('T', ' '));
     }

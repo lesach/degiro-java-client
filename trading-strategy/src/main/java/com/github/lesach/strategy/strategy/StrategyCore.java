@@ -1,6 +1,6 @@
-
 package com.github.lesach.strategy.strategy;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.lesach.client.*;
 import com.github.lesach.strategy.EStrategyType;
 import com.github.lesach.strategy.ETimeSerieResolutionType;
@@ -19,20 +19,27 @@ import java.util.List;
 @Setter
 public class StrategyCore
 {
-    public String getName() {
-        if (Product == null)
-            return Strings.EMPTY;
-        return Product.getName();
-    }
+    private String name;
     private DProductDescription Product;
     private EStrategyType StrategyType;
-    private List<StrategyStep> Steps = new ArrayList<StrategyStep>();
-    private ETimeSerieResolutionType Resolution;
+    private List<StrategyStep> Steps = new ArrayList<>();
+
+    @JsonIgnore
     private LocalDateTime LastPeriodComputation = LocalDateTime.MIN;
-    private List<Period> Periods = new ArrayList<Period>();
-    private List<SerieEventStatus> Statuses = new ArrayList<SerieEventStatus>();
-    private List<ComputationStatistic> Statistics = new ArrayList<ComputationStatistic>();
+
+    @JsonIgnore
+    private List<Period> Periods = new ArrayList<>();
+
+    @JsonIgnore
+    private List<SerieEventStatus> Statuses = new ArrayList<>();
+
+    @JsonIgnore
+    private List<ComputationStatistic> Statistics = new ArrayList<>();
+
+    @JsonIgnore
     private final Computer computer = new Computer();
+
+    @JsonIgnore
     private LocalDateTime StartDate = LocalDateTime.MIN;
 
     /// <summary>
@@ -46,4 +53,8 @@ public class StrategyCore
         Statistics.addAll(statistics);
     }
 
+    @Override
+    public String toString() {
+        return this.getName() + ((getStrategyType() == null ) ? Strings.EMPTY : " - " + getStrategyType().toString());
+    }
 }

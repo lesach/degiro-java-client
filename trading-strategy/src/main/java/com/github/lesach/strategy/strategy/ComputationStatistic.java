@@ -1,16 +1,21 @@
 package com.github.lesach.strategy.strategy;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
+@Getter
+@Setter
 public class ComputationStatistic
 {
-    public BigDecimal Value;
-    public String Name;
+    private BigDecimal value;
+    private String name;
 
     @Override
     public String toString()
     {
-        return Name + ": " + Value;
+        return name + ": " + value;
     }
 }
 

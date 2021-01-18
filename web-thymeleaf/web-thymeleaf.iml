@@ -96,6 +96,6 @@
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.11.1" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.apache.logging.log4j:log4j-core:2.11.1" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.25" level="project" />
-    <orderEntry type="library" name="Maven: be.ceau:chart:2.6.0" level="project" />
+    <orderEntry type="module" module-name="chart" />
   </component>
 </module>

@@ -4,7 +4,7 @@ package com.github.lesach.strategy.strategy;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.github.lesach.client.DProductDescription;
 import com.github.lesach.strategy.serie.SerieKey;
-import com.github.lesach.strategy.service.ValueDeserializer;
+import com.github.lesach.strategy.service.StrategyStepConditionParameterDeserializer;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -11,12 +11,12 @@
         <div class="form-row">
             <div class="col-md-2 input-with-post-icon" style="padding-top:7px">
                 <input placeholder="Select date" type="text" id="start-time" class="form-control datepicker">
-                <label for="start-time">Try me...</label>
+                <label for="start-time">Start Date</label>
                 <i class="fas fa-calendar input-prefix" tabindex=0></i>
             </div>
             <div class="col-md-2 input-with-post-icon" style="padding-top:7px">
                 <input placeholder="Select date" type="text" id="end-time" class="form-control datepicker">
-                <label for="end-time">Try me...</label>
+                <label for="end-time">End Date</label>
                 <i class="fas fa-calendar input-prefix" tabindex=0></i>
             </div>
 
@@ -232,25 +232,6 @@ $(function() {
     });
 });
 
-function checkValue(element) {
-  // check if the input has any value (if we've typed into it)
-  if ($(element).val())
-    $(element).addClass('has-value');
-  else
-    $(element).removeClass('has-value');
-}
-
-$(document).ready(function() {
-  // Run on page load
-  $('.form-control').each(function() {
-    checkValue(this);
-  })
-  // Run on input exit
-  $('.form-control').blur(function() {
-    checkValue(this);
-  });
-
-});
 </script>
 </div>
 </body>

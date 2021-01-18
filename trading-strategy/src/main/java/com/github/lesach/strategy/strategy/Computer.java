@@ -37,14 +37,14 @@ public class Computer
         {
             // Group
             Map<StrategyStepConditionGroup, List<SerieEventStatus>> seriesGroupsStatus = new HashMap<>();
-            for (StrategyStepConditionGroup serieEventGroup : serieEvent.Groups)
+            for (StrategyStepConditionGroup serieEventGroup : serieEvent.getGroups())
             {
                 // Items
                 Map<StrategyStepCondition, List<SerieEventStatus>> serieEventItemsStatus = new HashMap<>();
-                for (StrategyStepCondition item : serieEventGroup.Conditions)
+                for (StrategyStepCondition item : serieEventGroup.getConditions())
                 {
                     List<SerieEventStatus> serieEventItemStatus = reference.stream()
-                            .map(o -> new SerieEventStatus() {{ setDate(o); Verified = false; }}).collect(Collectors.toList());
+                            .map(o -> new SerieEventStatus() {{ setDate(o); setVerified(false); }}).collect(Collectors.toList());
                     List<SerieEventStatus> serieEventItemStatusToAdd = new ArrayList<>();
                     BigDecimal previous = BigDecimal.valueOf(-1);
                     for (SerieEventStatus status : serieEventItemStatus)
@@ -58,7 +58,7 @@ public class Computer
                                         value.set(s.Values.stream().filter(o -> o.getDateTime() == status.getDate()).findFirst().orElse(null))
                                     );
                                 if (previous.compareTo(BigDecimal.ZERO) > 0 && value.get() != null)
-                                    status.Verified = value.get().getValue().compareTo(previous) <= 0;
+                                    status.setVerified(value.get().getValue().compareTo(previous) <= 0);
                                 if (value.get() != null)
                                     previous = value.get().getValue();
                                 else
@@ -71,7 +71,7 @@ public class Computer
                                         value.set(s.Values.stream().filter(o -> o.getDateTime() == status.getDate()).findFirst().orElse(null))
                                 );
                                 if (previous.compareTo(BigDecimal.ZERO) > 0 && value.get() != null)
-                                    status.Verified = value.get().getValue().compareTo(previous) >= 0;
+                                    status.setVerified(value.get().getValue().compareTo(previous) >= 0);
                                 if (value.get() != null)
                                     previous = value.get().getValue();
                                 else
@@ -93,9 +93,9 @@ public class Computer
                                 if (valueA.get() != null && valueB.get() != null)
                                 {
                                     if (item.getEventType() == ESerieEventType.CrossDown)
-                                        status.Verified = valueA.get().getValue().compareTo(valueB.get().getValue()) <= 0;
+                                        status.setVerified(valueA.get().getValue().compareTo(valueB.get().getValue()) <= 0);
                                     else if (item.getEventType() == ESerieEventType.CrossUp)
-                                        status.Verified = valueA.get().getValue().compareTo(valueB.get().getValue()) >= 0;
+                                        status.setVerified(valueA.get().getValue().compareTo(valueB.get().getValue()) >= 0);
                                 }
                                 else
                                     previous = BigDecimal.valueOf(-1);
@@ -104,15 +104,15 @@ public class Computer
                             case TimeBefore:
                                 LocalTime time = LocalTime.parse(item.GetParameterValue("Time", String.class), DUtils.HM_FORMAT);
                                 if (item.getEventType() == ESerieEventType.TimeAfter)
-                                    status.Verified = time.getSecond() >= status.getDate().getSecond();
+                                    status.setVerified(time.getSecond() >= status.getDate().getSecond());
                                 if (item.getEventType() == ESerieEventType.TimeBefore)
-                                    status.Verified = time.getSecond() <= status.getDate().getSecond();
+                                    status.setVerified(time.getSecond() <= status.getDate().getSecond());
                                 break;
                             case TimeBetween:
                                 LocalTime timeA = LocalTime.parse(item.GetParameterValue("Time A", String.class));
                                 LocalTime timeB = LocalTime.parse(item.GetParameterValue("Time B", String.class));
-                                status.Verified = timeA.getSecond() <= status.getDate().getSecond()
-                                    && timeB.getSecond() >= status.getDate().getSecond();
+                                status.setVerified(timeA.getSecond() <= status.getDate().getSecond()
+                                    && timeB.getSecond() >= status.getDate().getSecond());
                                 break;
                         }
                         if (status.getDate().isAfter(statusMaxDate))
@@ -123,14 +123,14 @@ public class Computer
 
                 // Merge Items to group
                 List<SerieEventStatus> serieEventGroupStatus = reference.stream().filter(r -> r.isAfter(statusMaxDate))
-                        .map(o -> new SerieEventStatus() {{ setDate(o); Verified = false; }})
+                        .map(o -> new SerieEventStatus() {{ setDate(o); setVerified(false); }})
                         .collect(Collectors.toList());
                 for (SerieEventStatus groupStatus : serieEventGroupStatus)
                 {
                     List<BooleanOperand> operation = serieEventItemsStatus.entrySet().stream()
                             .map(i -> new BooleanOperand() {{
                                 Operator = i.getKey().getBooleanOperator();
-                                Value = i.getValue().stream().filter(o -> o.getDate() == groupStatus.getDate()).findFirst().get().Verified;
+                                Value = i.getValue().stream().filter(o -> o.getDate() == groupStatus.getDate()).findFirst().get().isVerified();
                             }})
                             .collect(Collectors.toList());
                     boolean first = true;
@@ -159,20 +159,20 @@ public class Computer
                             }
                         }
                     }
-                    groupStatus.Verified = result;
+                    groupStatus.setVerified(result);
                 }
                 seriesGroupsStatus.put(serieEventGroup, serieEventGroupStatus);
             }
 
             // Merge Groups to event
             List<SerieEventStatus> serieEventStatus = reference.stream().filter(r -> r.isAfter(statusMaxDate))
-                .map(o -> new SerieEventStatus() {{ setDate(o); Verified = false; }}).collect(Collectors.toList());
+                .map(o -> new SerieEventStatus() {{ setDate(o); setVerified(false); }}).collect(Collectors.toList());
             for (SerieEventStatus eventStatus : serieEventStatus)
             {
                 List<BooleanOperand> operation = seriesGroupsStatus.entrySet().stream()
                         .map(i -> new BooleanOperand() {{
-                            Operator = i.getKey().booleanOperator;
-                            Value = i.getValue().stream().filter(o -> o.getDate().isEqual(eventStatus.getDate())).findFirst().get().Verified;
+                            Operator = i.getKey().getBooleanOperator();
+                            Value = i.getValue().stream().filter(o -> o.getDate().isEqual(eventStatus.getDate())).findFirst().get().isVerified();
                         }}).collect(Collectors.toList());
                 boolean first = true;
                 boolean result = false;
@@ -200,7 +200,7 @@ public class Computer
                         }
                     }
                 }
-                eventStatus.Verified = result;
+                eventStatus.setVerified(result);
             }
             seriesEventsStatus.put(serieEvent, serieEventStatus);
         }
@@ -210,27 +210,27 @@ public class Computer
         for (LocalDateTime o : reference.stream().filter(r -> r.isAfter(statusMaxDate)).collect(Collectors.toList()))
         {
             List<SerieEventStatus> startStopevents = seriesEventsStatus.entrySet().stream()
-                    .filter(s -> s.getKey().PeriodInstantType == periodInstantType)
+                    .filter(s -> s.getKey().getPeriodInstantType() == periodInstantType)
                     .map(Map.Entry::getValue)
                     .flatMap(List::stream)
                     .collect(Collectors.toList());
             boolean bValue = false;
             if (startStopevents.size() > 0)
-                bValue = startStopevents.stream().map(s -> s.Verified).reduce((s1, s2) -> s1 && s2).get();
+                bValue = startStopevents.stream().map(SerieEventStatus::isVerified).reduce((s1, s2) -> s1 && s2).get();
             // for Stop the value is inverted because
             //if (periodInstantType == EPeriodInstantType.Stop)
             //    bValue = !bValue;
 
             List<SerieEventStatus> continueEvents = seriesEventsStatus.entrySet().stream()
-                    .filter(s -> s.getKey().PeriodInstantType == EPeriodInstantType.Continue)
+                    .filter(s -> s.getKey().getPeriodInstantType() == EPeriodInstantType.Continue)
                     .flatMap(s -> s.getValue().stream().filter(e -> e.getDate().isEqual(o)))
                     .collect(Collectors.toList());
             if (continueEvents.size() > 0)
                 bValue = (bValue || (startStopevents.size() == 0))
-                    && continueEvents.stream().map(s -> s.Verified).reduce((s1, s2) -> s1 && s2).get();
+                    && continueEvents.stream().map(SerieEventStatus::isVerified).reduce((s1, s2) -> s1 && s2).get();
 
             boolean finalValue = bValue;
-            strategy.getStatuses().add(new SerieEventStatus() {{ setDate(o); Verified = finalValue; }});
+            strategy.getStatuses().add(new SerieEventStatus() {{ setDate(o); setVerified(finalValue); }});
         }
     }
 
@@ -245,7 +245,7 @@ public class Computer
         {
             // Check if we are : a period
             Period currentPeriod = strategy.getPeriods().stream()
-                    .filter(p -> p.End.isAfter(strategy.getLastPeriodComputation()) || p.End.isEqual(strategy.getLastPeriodComputation()))
+                    .filter(p -> p.getEnd().isAfter(strategy.getLastPeriodComputation()) || p.getEnd().isEqual(strategy.getLastPeriodComputation()))
                     .findFirst().orElse(null);
             EPeriodInstantType periodInstantType = EPeriodInstantType.Stop;
             LocalDateTime maxDate = strategy.getStatuses().stream().map(SerieEventStatus::getDate).max(LocalDateTime::compareTo).orElse(null);
@@ -253,7 +253,7 @@ public class Computer
             {
                 SerieEventStatus s = strategy.getStatuses().stream().filter(l -> l.getDate() == o.getDateTime()).findFirst().orElse(null);
                 assert s != null;
-                if (s.Verified)
+                if (s.isVerified())
                 {
                     MeasureModel lastOhlc = reference.stream().filter(l -> l.getDateTime() == o.getDateTime()).findFirst().orElse(null);
                     assert lastOhlc != null;
@@ -261,22 +261,22 @@ public class Computer
                     {
                         // Continuing
                         assert currentPeriod != null;
-                        currentPeriod.End = lastOhlc.getDateTime();
-                        currentPeriod.ohlc.setClose(lastOhlc.getValue());
-                        currentPeriod.ohlc.setLow(currentPeriod.ohlc.getLow().min(lastOhlc.getValue()));
-                        currentPeriod.ohlc.setHigh(currentPeriod.ohlc.getHigh().max(lastOhlc.getValue()));
+                        currentPeriod.setEnd(lastOhlc.getDateTime());
+                        currentPeriod.getOhlc().setClose(lastOhlc.getValue());
+                        currentPeriod.getOhlc().setLow(currentPeriod.getOhlc().getLow().min(lastOhlc.getValue()));
+                        currentPeriod.getOhlc().setHigh(currentPeriod.getOhlc().getHigh().max(lastOhlc.getValue()));
                     }
                     else
                     {
                         // Starting
                         periodInstantType = EPeriodInstantType.Stop;
-                        currentPeriod.ohlc = new Ohlc();
-                        currentPeriod.ohlc.setDate(lastOhlc.getDateTime());
-                        currentPeriod.ohlc.setOpen(lastOhlc.getValue());
-                        currentPeriod.ohlc.setClose(lastOhlc.getValue());
-                        currentPeriod.ohlc.setLow(lastOhlc.getValue());
-                        currentPeriod.ohlc.setHigh(lastOhlc.getValue());
-                        currentPeriod.End = lastOhlc.getDateTime();
+                        currentPeriod.setOhlc(new Ohlc());
+                        currentPeriod.getOhlc().setDate(lastOhlc.getDateTime());
+                        currentPeriod.getOhlc().setOpen(lastOhlc.getValue());
+                        currentPeriod.getOhlc().setClose(lastOhlc.getValue());
+                        currentPeriod.getOhlc().setLow(lastOhlc.getValue());
+                        currentPeriod.getOhlc().setHigh(lastOhlc.getValue());
+                        currentPeriod.setEnd(lastOhlc.getDateTime());
                         strategy.getPeriods().add(currentPeriod);
                     }
                 }
@@ -286,7 +286,7 @@ public class Computer
                     {
                         // Reset section
                         periodInstantType = EPeriodInstantType.Start;
-                        currentPeriod = new Period() {{ ohlc = null; End = LocalDateTime.MIN; }};
+                        currentPeriod = new Period() {{ setOhlc(null); setEnd(LocalDateTime.MIN); }};
                     }
                 }
             }
@@ -303,17 +303,17 @@ public class Computer
     public List<ComputationStatistic> ComputeStatistics(List<Period> periods, BigDecimal computationMargin)
     {
         List<ComputationStatistic> result = new ArrayList<>();
-        result.add(new ComputationStatistic() {{ Name = "count"; Value = BigDecimal.valueOf(periods.size()); }});
+        result.add(new ComputationStatistic() {{ setName("count"); setValue(BigDecimal.valueOf(periods.size())); }});
         if (periods.size() > 0)
         {
-            result.add(new ComputationStatistic() {{ Name = "Average duration (mn)"; Value = BigDecimal.valueOf(periods.stream().mapToDouble(p -> ChronoUnit.SECONDS.between(p.ohlc.getDate(), p.End)).average().orElse(0d)); }});
-            result.add(new ComputationStatistic() {{ Name = "Cumulative duration (mn)"; Value = BigDecimal.valueOf(periods.stream().mapToDouble(p -> ChronoUnit.SECONDS.between(p.ohlc.getDate(), p.End)).sum()); }});
-            result.add(new ComputationStatistic() {{ Name = "Average delta"; Value = BigDecimal.valueOf(periods.stream().mapToDouble(p -> p.ohlc.getClose().subtract(p.ohlc.getOpen()).doubleValue()).average().orElse(0d)); }});
-            result.add(new ComputationStatistic() {{ Name = "Cumulative delta"; Value = BigDecimal.valueOf(periods.stream().mapToDouble(p -> p.ohlc.getClose().subtract(p.ohlc.getOpen()).doubleValue()).sum()); }});
-            result.add(new ComputationStatistic() {{ Name = "Number of delta > " + computationMargin; Value = BigDecimal.valueOf(periods.stream().filter(p -> p.ohlc.getClose().subtract(p.ohlc.getOpen()).compareTo(computationMargin) > 0).count()); }});
-            result.add(new ComputationStatistic() {{ Name = "Number of delta < " + (computationMargin.multiply(BigDecimal.valueOf(-1))); Value = BigDecimal.valueOf(periods.stream().filter(p -> p.ohlc.getClose().subtract(p.ohlc.getOpen()).compareTo(computationMargin.multiply(BigDecimal.valueOf(-1))) < 0).count()); }});
-            result.add(new ComputationStatistic() {{ Name = "Number of delta max > " + computationMargin; Value = BigDecimal.valueOf(periods.stream().filter(p -> p.ohlc.getHigh().subtract(p.ohlc.getOpen()).compareTo(computationMargin) > 0).count()); }});
-            result.add(new ComputationStatistic() {{ Name = "Number of delta min < " + (computationMargin.multiply(BigDecimal.valueOf(-1))); Value = BigDecimal.valueOf(periods.stream().filter(p -> p.ohlc.getLow().subtract(p.ohlc.getOpen()).compareTo(computationMargin.multiply(BigDecimal.valueOf(-1))) < 0).count()); }});
+            result.add(new ComputationStatistic() {{ setName("Average duration (mn)"); setValue(BigDecimal.valueOf(periods.stream().mapToDouble(p -> ChronoUnit.SECONDS.between(p.getOhlc().getDate(), p.getEnd())).average().orElse(0d))); }});
+            result.add(new ComputationStatistic() {{ setName("Cumulative duration (mn)"); setValue(BigDecimal.valueOf(periods.stream().mapToDouble(p -> ChronoUnit.SECONDS.between(p.getOhlc().getDate(), p.getEnd())).sum())); }});
+            result.add(new ComputationStatistic() {{ setName("Average delta"); setValue(BigDecimal.valueOf(periods.stream().mapToDouble(p -> p.getOhlc().getClose().subtract(p.getOhlc().getOpen()).doubleValue()).average().orElse(0d))); }});
+            result.add(new ComputationStatistic() {{ setName("Cumulative delta"); setValue(BigDecimal.valueOf(periods.stream().mapToDouble(p -> p.getOhlc().getClose().subtract(p.getOhlc().getOpen()).doubleValue()).sum())); }});
+            result.add(new ComputationStatistic() {{ setName("Number of delta > " + computationMargin); setValue(BigDecimal.valueOf(periods.stream().filter(p -> p.getOhlc().getClose().subtract(p.getOhlc().getOpen()).compareTo(computationMargin) > 0).count())); }});
+            result.add(new ComputationStatistic() {{ setName("Number of delta < " + (computationMargin.multiply(BigDecimal.valueOf(-1)))); setValue(BigDecimal.valueOf(periods.stream().filter(p -> p.getOhlc().getClose().subtract(p.getOhlc().getOpen()).compareTo(computationMargin.multiply(BigDecimal.valueOf(-1))) < 0).count())); }});
+            result.add(new ComputationStatistic() {{ setName("Number of delta max > " + computationMargin); setValue(BigDecimal.valueOf(periods.stream().filter(p -> p.getOhlc().getHigh().subtract(p.getOhlc().getOpen()).compareTo(computationMargin) > 0).count())); }});
+            result.add(new ComputationStatistic() {{ setName("Number of delta min < " + (computationMargin.multiply(BigDecimal.valueOf(-1)))); setValue(BigDecimal.valueOf(periods.stream().filter(p -> p.getOhlc().getLow().subtract(p.getOhlc().getOpen()).compareTo(computationMargin.multiply(BigDecimal.valueOf(-1))) < 0).count())); }});
         }
         return result;
     }

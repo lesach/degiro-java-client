@@ -1,31 +1,20 @@
 package com.github.lesach.strategy.serie;
 
 import com.github.lesach.client.DProductDescription;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class SerieKey implements Cloneable {
-    public Indicator getIndicator() {
-        return Indicator;
-    }
 
-    public void setIndicator(Indicator indicator) {
-        Indicator = indicator;
-    }
-
-    public DProductDescription getProduct() {
-        return Product;
-    }
-
-    public void setProduct(DProductDescription product) {
-        Product = product;
-    }
-
-    private Indicator Indicator;
-    private DProductDescription Product;
+    private Indicator indicator;
+    private DProductDescription product;
 
     @Override
     public String toString()
     {
-        return Product.getName() + " (" + Indicator.toString() + ")";
+        return product.getName() + " (" + indicator.toString() + ")";
     }
 
     @Override
@@ -34,20 +23,20 @@ public class SerieKey implements Cloneable {
         if (!(obj instanceof SerieKey))
             return false;
         SerieKey serieKey = (SerieKey) obj;
-        return (serieKey.Product.getId() == Product.getId()) && (Indicator.equals(serieKey.Indicator));
+        return (serieKey.getProduct().getId() == product.getId()) && (indicator.equals(serieKey.getIndicator()));
     }
 
     @Override
     public int hashCode()
     {
-        return Long.hashCode(Product.getId()) + Indicator.hashCode();
+        return Long.hashCode(product.getId()) + indicator.hashCode();
     }
 
     @Override
     public SerieKey clone() throws CloneNotSupportedException {
         SerieKey clone = (SerieKey) super.clone();
-        clone.setProduct(Product.clone());
-        clone.setIndicator(Indicator.clone());
+        clone.setProduct(product.clone());
+        clone.setIndicator(indicator.clone());
         return clone;
     }
 }

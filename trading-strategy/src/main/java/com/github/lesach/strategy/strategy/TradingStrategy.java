@@ -14,4 +14,9 @@ public class TradingStrategy
     private String name;
     private ETimeSerieResolutionType resolution;
     private List<StrategyCore> strategies = new ArrayList<StrategyCore>();
+
+    @Override
+    public String toString() {
+        return this.getName() + " - " + getResolution().toString();
+    }
 }

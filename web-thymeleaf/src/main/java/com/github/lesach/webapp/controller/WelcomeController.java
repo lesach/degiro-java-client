@@ -3,49 +3,34 @@ package com.github.lesach.webapp.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.lesach.strategy.EBooleanOperator;
 import com.github.lesach.strategy.EPeriodInstantType;
-import com.github.lesach.strategy.ESerieEventType;
+import com.github.lesach.strategy.EStrategyType;
+import com.github.lesach.strategy.ETimeSerieResolutionType;
 import com.github.lesach.strategy.serie.Indicator;
 import com.github.lesach.strategy.service.IJsonService;
 import com.github.lesach.strategy.strategy.EStrategyStepConditionParameterType;
+import com.github.lesach.strategy.strategy.StrategyCore;
 import com.github.lesach.strategy.strategy.StrategyStepCondition;
+import com.github.lesach.webapp.provider.IStockageService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.github.lesach.strategy.strategy.StrategyStepCondition.StrategyStepConditions;
 
 @Controller
 public class WelcomeController {
 
-    // inject via application.properties
-    @Value("${welcome.message}")
-    private String message;
+    @Autowired
+    protected IStockageService stockageService;
 
     @Autowired
-    private IJsonService jsonService;
+    protected IJsonService jsonService;
 
-    private List<String> tasks = Arrays.asList("a", "b", "c", "d", "e", "f", "g");
-
-    @GetMapping("/")
-    public String main(Model model) {
-        model.addAttribute("message", message);
-        model.addAttribute("tasks", tasks);
-
-        return "welcome"; //view
-    }
 
     @GetMapping("/index")
     public String index(Model model) {
-        model.addAttribute("message", message);
-        model.addAttribute("tasks", tasks);
-
         Map<Indicator, String> indicators = Indicator.Indicators.stream().map(i -> {
                     try {
                         return new AbstractMap.SimpleEntry<>(
@@ -101,17 +86,49 @@ public class WelcomeController {
                 .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
         model.addAttribute("strategyStepConditionParameterTypeList", strategyStepConditionParameterTypes);
 
+        // Strategy Resolution Types
+        Map<ETimeSerieResolutionType, String> strategyResolutions = Arrays.stream(ETimeSerieResolutionType.values()).map(i -> new AbstractMap.SimpleEntry<>(
+                i,
+                i.getStrValue()
+        ))
+                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+        model.addAttribute("strategyResolutionList", strategyResolutions);
+
+        // Strategy Resolution Types
+        Map<EStrategyType, String> strategyTypes = Arrays.stream(EStrategyType.values()).map(i -> new AbstractMap.SimpleEntry<>(
+                i,
+                i.getStrValue()
+        ))
+                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
+        model.addAttribute("strategyTypeList", strategyTypes);
+
+        model.addAttribute("strategyList", getStrategiesList());
+
         return "index";
     }
 
-    // /hello?name=kotlin
-    @GetMapping("/hello")
-    public String mainWithParam(
-            @RequestParam(name = "name", required = false, defaultValue = "") String name, Model model) {
+    @GetMapping("/test")
+    public String test(Model model) {
 
-        model.addAttribute("message", name);
+        model.addAttribute("strategyList", getStrategiesList());
 
-        return "welcome"; //view
+        return "scenariotester";
+    }
+
+    private Map<StrategyCore, String> getStrategiesList() {
+        return stockageService.getStrategy().getStrategies().stream().map(i -> {
+            try {
+                return new AbstractMap.SimpleEntry<>(
+                        i,
+                        jsonService.toJson(i)
+                );
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            return null;
+        })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
     }
 
 }

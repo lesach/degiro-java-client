@@ -1,38 +1,26 @@
 package com.github.lesach.strategy.engine;
 
-import com.github.lesach.client.*;
+import com.github.lesach.client.DPrice;
+import com.github.lesach.client.DProductDescription;
 import com.github.lesach.client.exceptions.DeGiroException;
-import com.github.lesach.client.log.DLog;
-import com.github.lesach.strategy.DeGiroClientInterface;
 import com.github.lesach.strategy.EIndicatorType;
 import com.github.lesach.strategy.MeasureModel;
-import com.github.lesach.strategy.SerieEventStatus;
 import com.github.lesach.strategy.serie.Indicator;
-import com.github.lesach.strategy.serie.SerieBase;
-import com.github.lesach.strategy.serie.SerieKey;
-import com.github.lesach.strategy.strategy.Computer;
-import com.github.lesach.strategy.strategy.EStrategyStepConditionParameterType;
 import com.github.lesach.strategy.strategy.StrategyCore;
 import com.github.lesach.strategy.strategy.TradingStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import lombok.NonNull;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-@Component
 public interface StrategyEngineInterface
 {
+    TradingStrategy getStrategy();
+
+    List<EngineProduct> getProducts();
+
+    void setStrategy(TradingStrategy strategy);
+
     /// <summary>
     /// Update price of series
     /// </summary>
@@ -100,4 +88,12 @@ public interface StrategyEngineInterface
     /// <param name="date"></param>
     /// <param name="reference"></param>
     void SimulateStep(LocalDateTime date) throws DeGiroException;
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    void Simulate(@NonNull LocalDateTime start, @NonNull LocalDateTime end) throws DeGiroException, CloneNotSupportedException, InterruptedException;
+    
 }

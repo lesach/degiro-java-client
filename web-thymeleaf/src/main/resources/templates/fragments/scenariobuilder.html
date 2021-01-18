@@ -10,60 +10,23 @@
     <form class="form-row">
         <div class="col-4">
             <div class="md-form mb-0">
-                <input class="col form-control" type="text" id="txt-strategy-name" name="strategy-name" list="strategy-name-list"/>
-                <label for="txt-strategy-name" >Strategy</label>
-                <datalist id="strategy-name-list">
+                <input class="col form-control" type="text" id="txt-strategy-resolution" name="strategy-resolution" list="strategy-resolution-list"/>
+                <label for="txt-strategy-resolution">Resolution</label>
+                <datalist id="strategy-resolution-list">
+                    <option th:each="row : ${strategyResolutionList}"
+                            th:value="${row.key.strValue}" th:label="${row.key.strValue}" th:data-json="${row.value}">
                 </datalist>
-                <input class="btn btn-outline-info rounded-pill btn-block my-4 waves-effect z-depth-0" type="button" id="btn-strategy" value="Add Strategy"/>
+                <input class="btn btn-outline-info rounded-pill btn-block my-4 waves-effect z-depth-0" type="button" id="btn-strategy" value="Set Resolution"/>
 <script>
 $(function() {
-    $("#btn-strategy").prop("disabled", true);
-
     $("#btn-strategy").click(function(e) {
         e.preventDefault();
-        $("#btn-strategy").prop("disabled", true);
-        var value = $("#txt-strategy-name").val();
-        if (value.length >= 3) {
-            var el = $("strategy-parameter-indicator-list").find("*[value='" + value + "']");
-            if (el.length == 0) {
-                var search = {};
-                search["strategy"] = value;
-                $.ajax({
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(search),
-                    dataType: 'json',
-                    cache: false,
-                    timeout: 600000,
-                    url: "/quote/addstrategy",
-                    success: function(result) {
-                        $("#btn-strategy").prop("disabled", (result.length > 0));
-                        $("#strategy-name-list").empty();
-                        for(var i=0;i<result.length;i++)
-                        {
-                            $("#strategy-name-list").append("<option data-id='" + result[i].key + "' value='" + result[i].value + "'" +
-                                ">" + result[i].value + "</option>");
-                        }
-                    },
-                    error: function(result) {
-                        // Nothing to do
-                        $("#btn-strategy").prop("disabled", true);
-                    },
-                    complete: function(result) {
-
-                    }
-                });
-            }
-        }
-    });
-
-
-    $("#txt-strategy-name").on("input", function () {
-        var value = $("#txt-strategy-name").val();
-        $("#btn-strategy").prop("disabled", true);
-        if (value.length >= 3) {
+        var value = $("#txt-strategy-resolution").val();
+        var el = $("#strategy-resolution-list").find("*[value='" + value + "']");
+        if (el.length > 0) {
+            $("#btn-strategy").prop("disabled", true);
             var search = {};
-            search["strategy"] = value;
+            search["resolution"] = value;
             $.ajax({
                 type: "POST",
                 contentType: "application/json",
@@ -71,22 +34,15 @@ $(function() {
                 dataType: 'json',
                 cache: false,
                 timeout: 600000,
-                url: "/quote/searchstrategies",
+                url: "/quote/setresolution",
                 success: function(result) {
-                    $("#btn-strategy").prop("disabled", (result.length > 0));
-                    $("#strategy-name-list").empty();
-                    for(var i=0;i<result.length;i++)
-                    {
-                        $("#strategy-name-list").append("<option data-id='" + result[i].key + "' value='" + result[i].value + "'" +
-                            ">" + result[i].value + "</option>");
-                    }
+                    $("#btn-strategy").val("Set Resolution (OK)");
                 },
                 error: function(result) {
-                    // Nothing to do
-                    $("#btn-strategy").prop("disabled", true);
+                    $("#btn-strategy").val("Set Resolution (ERROR)");
                 },
                 complete: function(result) {
-
+                    $("#btn-strategy").prop("disabled", false);
                 }
             });
         }
@@ -100,10 +56,75 @@ $(function() {
     <form class="form-row">
         <div class="col-4">
             <div class="md-form mb-0">
+                <input class="col form-control" type="text" id="txt-strategy-name" name="strategy-name" list="strategy-name-list"/>
+                <label for="txt-strategy-name" >Strategy</label>
+                <datalist id="strategy-name-list">
+                    <option th:each="row : ${strategyList}"
+                            th:value="${row.key.name}" th:label="${row.key.name}" th:data-json="${row.value}">
+                </datalist>
+            </div>
+
+            <div class="md-form mb-0">
+                <input class="col form-control" type="text" id="txt-strategy-products" name="product" list="strategy-product-list"/>
+                <label for="txt-strategy-products">Product</label>
+                <datalist id="strategy-product-list"></datalist>
+            </div>
+<script>
+$(function() {
+    $("#txt-strategy-products").on("input", function () {
+        fillProductList("btn-strategy-products", "txt-strategy-products", "strategy-product-list");
+    });
+});
+</script>
+            <div class="md-form mb-0">
+                <input class="btn btn-outline-info rounded-pill btn-block my-4 waves-effect z-depth-0" type="button" id="btn-strategy-product" value="Set Product"/>
+            </div>
+<script>
+$(function() {
+    $("#btn-strategy-product").click(function(e) {
+        e.preventDefault();
+        $("#btn-strategy-product").prop("disabled", true);
+        var value = $("#txt-strategy-products").val();
+        var el = $("#strategy-product-list").find("*[value='" + value + "']");
+        if (el.length > 0) {
+            var search = {};
+            search["product"] = JSON.stringify(el.data("json"));
+            $.ajax({
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(search),
+                dataType: 'json',
+                cache: false,
+                timeout: 600000,
+                url: "/quote/setstrategyproduct",
+                success: function(result) {
+                    $("#btn-strategy-product").val("Set Product (OK)");
+                },
+                error: function(result) {
+                    $("#btn-strategy-product").val("Set Product (ERROR)");
+                },
+                complete: function(result) {
+                    $("#btn-strategy-product").prop("disabled", false);
+                }
+            });
+        }
+    });
+});
+</script>
+            <div class="md-form mb-0">
                 <input class="col form-control trigger-param" type="text" id="txt-strategy-period-instant-type" name="period-instant-type" list="period-instant-type-list"/>
                 <label for="txt-strategy-period-instant-type">Instant</label>
                 <datalist id="period-instant-type-list">
                     <option th:each="row : ${periodInstantTypeList}"
+                            th:value="${row.key.strValue}" th:label="${row.key.strValue}" th:data-json="${row.value}">
+                </datalist>
+            </div>
+
+            <div class="md-form mb-0">
+                <input class="col form-control" type="text" id="txt-strategy-type" name="strategy-type" list="strategy-type-list"/>
+                <label for="txt-strategy-type" >Strategy Type</label>
+                <datalist id="strategy-type-list">
+                    <option th:each="row : ${strategyTypeList}"
                             th:value="${row.key.strValue}" th:label="${row.key.strValue}" th:data-json="${row.value}">
                 </datalist>
             </div>
@@ -155,10 +176,50 @@ $(function() {
             </div>
         </div>
         <div class="col-8">
+            <div id="strategy-trigger"></div>
+            <div id="tree"></div>
         </div>
     </form>
 <script>
 $(function() {
+    $("#txt-strategy-name").on("input", function () {
+        var value = $("#txt-strategy-name").val();
+        $("#btn-strategy").prop("disabled", true);
+        if (value.length >= 3) {
+            var search = {};
+            search["strategy"] = value;
+            $.ajax({
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(search),
+                dataType: 'json',
+                cache: false,
+                timeout: 600000,
+                url: "/quote/searchstrategies",
+                success: function(result) {
+                    $("#btn-strategy").prop("disabled", (result.length > 0));
+                    $("#strategy-name-list").empty();
+                    for(var i=0;i<result.length;i++)
+                    {
+                        $("#strategy-name-list").append("<option data-id='" + result[i].key + "' data-json='" + result[i].value + "'" +
+                            " value='" + result[i].key + "'>" + result[i].key + "</option>");
+                    }
+                    var el = $("#strategy-name-list").find("*[data-id='" + value + "']");
+                    if (el.length > 0) {
+                        var strategy = el.data("json");
+                    }
+                },
+                error: function(result) {
+                    // Nothing to do
+                    $("#btn-strategy").prop("disabled", true);
+                },
+                complete: function(result) {
+
+                }
+            });
+        }
+    });
+
     $("#txt-strategy-serie-event-type").on("input", function () {
         $('#event-type-parameters').empty();
         var value = $("#txt-strategy-serie-event-type").val();
@@ -221,6 +282,8 @@ $(function() {
         e.preventDefault();
         $("#btn-trigger").prop("disabled", true);
         var search = {};
+        var value = $("#txt-strategy-name").val();
+        $("#btn-strategy").prop("disabled", true);
         var strategyName = $("#txt-strategy-name").val();
         search["strategyName"] = strategyName;
         var instantType = $("#txt-strategy-period-instant-type").val();
@@ -260,28 +323,28 @@ $(function() {
 
                     }
                     if (p.parameterType == "Serie") {
-                        var selected.value = {};
-                        var product = parametersEl.find("#txt-strategy-parameter-products-" + rowId);
+                        p.value = {};
+                        var product = parametersEl.find("#txt-strategy-parameter-products-" + rowId).val();
                         var productEl = $("#strategy-parameter-product-list-" + rowId).find("*[value='" + product + "']");
                         if (productEl.length > 0) {
-                            selected.value.product = productEl.data("json");
+                            p.value.product = productEl.data("json");
                         }
                         var indicatorType = $("#txt-strategy-parameter-indicator-" + rowId).val();
                         var indicatorEl = $("#strategy-parameter-indicator-list").find("*[value='" + indicatorType + "']");
-                        if (indicatorEl != undefined) {
+                        if (indicatorEl.length > 0) {
                             var indicator = indicatorEl.data("json");
                             var parametersArray = [];
-                            for (p in indicator.parameters) {
-                                indicator.parameters[p].value = $("#strategy-parameter-indicator-parameters-" + rowId).find("#" + indicator.parameters[p].name).val();
+                            for (k in indicator.parameters) {
+                                indicator.parameters[k].value = $("#strategy-parameter-indicator-parameters-" + rowId).find("#" + indicator.parameters[k].name).val();
                             }
-                            selected.value.indicator = indicator;
+                            p.value.indicator = indicator;
                         }
                     }
                     if (p.parameterType == "Number") {
-                        search["number"] = $("#number-value-" + rowId).val();
+                        p.value = $("#number-value-" + rowId).val();
                     }
                     if (p.parameterType == "Time") {
-                        search["number"] = $("#time-value-" + rowId).val();
+                        p.value = $("#time-value-" + rowId).val();
                     }
                 });
                 search["condition"] = JSON.stringify(selected);
@@ -301,6 +364,8 @@ $(function() {
                     $("#btn-trigger").prop("disabled", (result.length > 0));
                     $("#strategy-trigger").empty();
                     $("#strategy-trigger").html("saved");
+
+                    $('#tree').bstreeview({ data: result });
                 },
                 error: function(result) {
                     // Nothing to do

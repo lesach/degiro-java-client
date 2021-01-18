@@ -1,16 +1,15 @@
 package com.github.lesach.webapp.provider;
 
+import com.github.lesach.strategy.strategy.StrategyCore;
 import com.github.lesach.strategy.strategy.TradingStrategy;
 
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
 
 public interface IStockageService {
 
-    Map<Integer, TradingStrategy> findStrategies(String name);
+    TradingStrategy getStrategy();
 
-    boolean addStrategy(String name);
+    void saveStrategy() throws IOException;
 
-    TradingStrategy getStrategy(String name);
-
+    StrategyCore getStrategyCore(String strategyName);
 }

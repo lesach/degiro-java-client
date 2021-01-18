@@ -61,10 +61,10 @@ public class DConvert
     {
         switch (value)
         {
-            case "LIMIT": return DOrderType.LIMITED;
-            case "MARKET": return DOrderType.MARKET_ORDER;
-            case "STOPLOSS": return DOrderType.STOP_LOSS;
-            case "STOPLIMIT": return DOrderType.LIMITED_STOP_LOSS;
+            case "LIMIT": return DOrderType.LIMIT;
+            case "MARKET": return DOrderType.MARKET;
+            case "STOPLOSS": return DOrderType.STOPLOSS;
+            case "STOPLIMIT": return DOrderType.STOPLIMIT;
             default: return DOrderType.NULL;
         }
     }
@@ -73,10 +73,10 @@ public class DConvert
     {
         switch (value)
         {
-            case 0: return DOrderType.LIMITED;
-            case 1: return DOrderType.MARKET_ORDER;
-            case 2: return DOrderType.STOP_LOSS;
-            case 3: return DOrderType.LIMITED_STOP_LOSS;
+            case 0: return DOrderType.LIMIT;
+            case 1: return DOrderType.MARKET;
+            case 2: return DOrderType.STOPLOSS;
+            case 3: return DOrderType.STOPLIMIT;
             default: return DOrderType.NULL;
         }
     }

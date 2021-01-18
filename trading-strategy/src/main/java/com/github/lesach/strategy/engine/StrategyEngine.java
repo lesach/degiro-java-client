@@ -2,19 +2,19 @@ package com.github.lesach.strategy.engine;
 
 import com.github.lesach.client.*;
 import com.github.lesach.client.exceptions.DeGiroException;
-import com.github.lesach.strategy.DeGiroClientInterface;
-import com.github.lesach.strategy.EIndicatorType;
+import com.github.lesach.strategy.*;
 import com.github.lesach.strategy.strategy.*;
 import com.github.lesach.client.log.DLog;
 import com.github.lesach.strategy.serie.Indicator;
 import com.github.lesach.strategy.serie.SerieBase;
 import com.github.lesach.strategy.serie.SerieKey;
-import com.github.lesach.strategy.MeasureModel;
-import com.github.lesach.strategy.SerieEventStatus;
+import lombok.NonNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -29,8 +29,11 @@ import java.util.stream.Collectors;
 @Component
 public class StrategyEngine implements StrategyEngineInterface, InitializingBean
 {
+    @Value("${trading.simulation.margin}")
+    protected int simulationMargin;
+
     @Autowired
-    private DeGiroClientInterface deGiroClient;
+    protected DeGiroClientInterface deGiroClient;
 
     public Function<Map.Entry<LocalDateTime, String>, Boolean> PostMessage;
     private ScheduledFuture<?> execute;
@@ -41,7 +44,6 @@ public class StrategyEngine implements StrategyEngineInterface, InitializingBean
     public EEngineStatus Status = EEngineStatus.Stopped;
     public LocalDateTime LastComputation = LocalDateTime.MIN;
     private final Computer computer = new Computer();
-    public List<EngineMessage> Messages = new ArrayList<>();
     public Runnable EndOfStepAction;
     public List<EngineCommand> EngineCommands = new ArrayList<>();
     public List<DOrder> Orders;
@@ -52,6 +54,20 @@ public class StrategyEngine implements StrategyEngineInterface, InitializingBean
         subscription = new Subscription(deGiroClient);
     }
 
+    @Override
+    public TradingStrategy getStrategy() {
+        return tradingStrategy;
+    }
+
+    @Override
+    public void setStrategy(TradingStrategy strategy) {
+        tradingStrategy = strategy;
+    }
+
+    @Override
+    public List<EngineProduct> getProducts() {
+        return Products;
+    }
     /// <summary>
     /// Update price of series
     /// </summary>
@@ -74,9 +90,9 @@ public class StrategyEngine implements StrategyEngineInterface, InitializingBean
                 .stream()
                 .map(StrategyCore::getSteps)
                 .flatMap(List::stream)
-                .map(s -> s.Groups)
+                .map(StrategyStep::getGroups)
                 .flatMap(List::stream)
-                .map(s -> s.Conditions)
+                .map(StrategyStepConditionGroup::getConditions)
                 .flatMap(List::stream)
                 .map(StrategyStepCondition::getParameters)
                 .flatMap(List::stream)
@@ -93,7 +109,7 @@ public class StrategyEngine implements StrategyEngineInterface, InitializingBean
         }
         for (EngineProduct product : Products)
         {
-            product.Initialize(start, end);
+            product.Initialize(deGiroClient, start, end);
         }
         for (StrategyCore strategy : tradingStrategy.getStrategies())
         {
@@ -214,7 +230,7 @@ public class StrategyEngine implements StrategyEngineInterface, InitializingBean
                                 .collect(Collectors.toList()));
                 boolean result = strategy.getStatuses().stream().filter(s ->
                     s.getDate().isAfter(maxDate) || s.getDate().isEqual(maxDate)
-                ).map(s -> s.Verified).reduce((s1, s2) -> s1 && s2).orElse(false);
+                ).map(SerieEventStatus::isVerified).reduce((s1, s2) -> s1 && s2).orElse(false);
 
                 // Get current state of the portfolio before sending orders
                 Orders = deGiroClient.getOrders();
@@ -229,7 +245,7 @@ public class StrategyEngine implements StrategyEngineInterface, InitializingBean
                         MeasureModel lastMeasure = FindReference(strategy, EIndicatorType.Ask).stream().max(Comparator.comparing(MeasureModel::getDateTime)).orElse(null);
                         assert lastMeasure != null;
                         engineCommand.NewOrder = new DNewOrder(DOrderAction.BUY,
-                            DOrderType.LIMITED,
+                            DOrderType.LIMIT,
                             DOrderTime.DAY,
                             strategy.getProduct().getId(),
                             10L,
@@ -324,6 +340,42 @@ public class StrategyEngine implements StrategyEngineInterface, InitializingBean
         for (StrategyCore strategy : tradingStrategy.getStrategies())
             computer.ComputePeriods(strategy,
                     FindReference(strategy).stream().filter(m -> m.getDateTime().isBefore(date) || m.getDateTime().isEqual(date)).collect(Collectors.toList()));
+    }
+
+    /// <summary>
+    /// Compute periods matching events
+    /// </summary>
+    @Override
+    public void Simulate(@NonNull LocalDateTime start, @NonNull LocalDateTime end) throws DeGiroException, CloneNotSupportedException, InterruptedException {
+        // Retrieve Reference serie
+        InitializeSimulation(start, end);
+        LocalDateTime minDate = end;
+        LocalDateTime maxDate = start;
+        for (StrategyCore strategy : tradingStrategy.getStrategies())
+        {
+            LocalDateTime strategyMinDate = FindReference(strategy).stream().map(MeasureModel::getDateTime).min(LocalDateTime::compareTo).orElse(null);
+            LocalDateTime strategyMaxDate = FindReference(strategy).stream().map(MeasureModel::getDateTime).max(LocalDateTime::compareTo).orElse(null);
+            if ((strategyMinDate != null) && (strategyMinDate.compareTo(minDate) < 0))
+                minDate = strategyMinDate;
+            if ((strategyMaxDate != null) && (strategyMaxDate.compareTo(maxDate) > 0))
+                maxDate = strategyMaxDate;
+        }
+        List<LocalDateTime> dates = getStrategy().getResolution().getDateTimeBetween(minDate, maxDate);
+
+        for (LocalDateTime date : dates)
+        {
+            SimulateStep(date);
+            for (StrategyCore strategy : getStrategy().getStrategies())
+            {
+                if (strategy.getPeriods().stream().anyMatch(p -> p.getEnd().compareTo(date) >= 0))
+                {
+                    //for (Period period : strategy.getPeriods().stream().filter(p -> p.getEnd().compareTo(date) >= 0).collect(Collectors.toList())) {
+                        // Create section
+                    //}
+                    strategy.ComputeStatistics(new BigDecimal(simulationMargin));
+                }
+            }
+        }
     }
 
 }

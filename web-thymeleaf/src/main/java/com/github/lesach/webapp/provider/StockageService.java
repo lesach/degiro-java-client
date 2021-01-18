@@ -1,48 +1,92 @@
 package com.github.lesach.webapp.provider;
 
+import com.github.lesach.strategy.engine.StrategyEngineInterface;
+import com.github.lesach.strategy.service.IJsonService;
+import com.github.lesach.strategy.strategy.StrategyCore;
 import com.github.lesach.strategy.strategy.TradingStrategy;
-import com.google.common.base.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 public class StockageService implements IStockageService{
 
-    private final Map<Integer, TradingStrategy> tradingStrategyMap = new HashMap<Integer, TradingStrategy>() {{
-        Integer i = 1;
-        put(i, new TradingStrategy() {{
-            setName("Tototo");
-        }});
-    }};
+    @Value("${strategy.path}")
+    protected String strategyPath;
 
+    @Autowired
+    protected StrategyEngineInterface engine;
 
-    @Override
-    public Map<Integer, TradingStrategy> findStrategies(String name) {
-        return tradingStrategyMap.entrySet().stream().filter(e ->
-                !(Strings.isNullOrEmpty(e.getValue().getName()))
-                        && !(Strings.isNullOrEmpty(name))
-                        && e.getValue().getName().toLowerCase().contains(name.toLowerCase())
-        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    @Autowired
+    protected IJsonService json;
+
+    @PostConstruct
+    private void postConstruct() throws IOException {
+        if (!StringUtils.isEmpty(strategyPath)) {
+            File file = new File(strategyPath);
+            if (file.exists()) {
+                String jsonText = String.join("", readFileInList(strategyPath));
+                engine.setStrategy(json.fromJson(jsonText, TradingStrategy.class));
+            }
+        }
+        if (engine.getStrategy() == null) {
+            engine.setStrategy(new TradingStrategy() {{
+                setName("Strategies");
+            }});
+        }
     }
 
     @Override
-    public boolean addStrategy(String name) {
-        Integer i = tradingStrategyMap.keySet().stream().max(Comparator.comparing(e -> e)).orElse(0);
-        tradingStrategyMap.put(i + 1, new TradingStrategy() {{
-            setName(name);
-        }});
-        return true;
+    public TradingStrategy getStrategy() {
+        return engine.getStrategy();
     }
 
     @Override
-    public TradingStrategy getStrategy(String name) {
-        return tradingStrategyMap.values().stream().filter(e ->
-                !(Strings.isNullOrEmpty(e.getName()))
-                        && !(Strings.isNullOrEmpty(name))
-                        && e.getName().toLowerCase().equals(name.toLowerCase())).findFirst().orElse(null);
+    public StrategyCore getStrategyCore(String strategyName) {
+        return getStrategy().getStrategies()
+                .stream().filter(s -> s.getName().equals(strategyName))
+                .findFirst().orElse(null);
+    }
+
+    public static List<String> readFileInList(String fileName)
+    {
+        List<String> lines = Collections.emptyList();
+        try
+        {
+            lines = Files.readAllLines(Paths.get(fileName), StandardCharsets.UTF_8);
+        }
+        catch (IOException e)
+        {
+            // do something
+            e.printStackTrace();
+        }
+        return lines;
+    }
+
+    @Override
+    public void saveStrategy() throws IOException {
+        File file = new File(strategyPath);
+        if (file.exists())
+            Files.copy(Paths.get(strategyPath), Paths.get(strategyPath + ".bkp"));
+        BufferedWriter writer = new BufferedWriter(new FileWriter(strategyPath));
+        writer.write(json.toJson(engine.getStrategy()));
+        writer.close();
+    }
+
+    @PreDestroy
+    private void preDestroy() throws IOException {
+        saveStrategy();
     }
 }

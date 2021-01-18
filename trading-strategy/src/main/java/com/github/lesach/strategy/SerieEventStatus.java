@@ -1,18 +1,15 @@
 
 package com.github.lesach.strategy;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
 public class SerieEventStatus
 {
-    public LocalDateTime getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDateTime _date) {
-        this.date = _date;
-    }
-
     private LocalDateTime date;
-    public boolean Verified;
+    private boolean verified;
 }

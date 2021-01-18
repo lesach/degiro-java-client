@@ -2,6 +2,7 @@ package com.github.lesach.strategy.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.github.lesach.client.*;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 public class JsonService implements IJsonService{
 
     private final ObjectMapper json = new ObjectMapper() {{
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             SimpleModule module = new SimpleModule();
             module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer());
             module.addDeserializer(BigDecimal.class, new BigDecimalDeserializer());

@@ -1,0 +1,113 @@
+<!DOCTYPE HTML>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Spring Boot Thymeleaf Hello World Example</title>
+    <link th:replace="fragments/header.html :: head/link"/>
+    <script th:replace="fragments/header.html :: head/script"> </script>
+</head>
+<body>
+<header th:insert="fragments/header.html :: header"> </header>
+<main role="main" class="container">
+    <h3>Strategy Selection</h3>
+    <form class="md-form form-row">
+        <div class="form-group col-md-2">
+            <input class="col form-control" type="text" id="txt-strategy-name" name="strategy-name" list="strategy-name-list"/>
+            <label for="txt-strategy-name" >Strategy</label>
+            <datalist id="strategy-name-list">
+                <option th:each="row : ${strategyList}"
+                        th:value="${row.key.name}" th:label="${row.key.name}" th:data-json="${row.value}">
+            </datalist>
+        </div>
+        <div class="col-md-2 input-with-post-icon" style="padding-top:7px">
+            <input placeholder="Select date" type="text" id="start-time" class="form-control datepicker">
+            <label for="start-time">Start Date</label>
+            <i class="fas fa-calendar input-prefix" tabindex=0></i>
+        </div>
+        <div class="col-md-2 input-with-post-icon" style="padding-top:7px">
+            <input placeholder="Select date" type="text" id="end-time" class="form-control datepicker">
+            <label for="end-time">End Date</label>
+            <i class="fas fa-calendar input-prefix" tabindex=0></i>
+        </div>
+        <input class="btn btn-outline-info rounded-pill btn-block my-4 waves-effect z-depth-0" type="button" id="btn-strategy-test" value="Test Strategy"/>
+<script>
+function formatDate(dt) {
+    return `${
+        dt.getFullYear().toString().padStart(4, '0')}-${
+        (dt.getMonth()+1).toString().padStart(2, '0')}-${
+        dt.getDate().toString().padStart(2, '0')} ${
+        dt.getHours().toString().padStart(2, '0')}:${
+        dt.getMinutes().toString().padStart(2, '0')}`;//:${
+        //dt.getSeconds().toString().padStart(2, '0')}`
+}
+
+$(function() {
+    let endTime = new Date();
+    let startTime = new Date(endTime.getFullYear(), endTime.getMonth()-1, endTime.getDate());
+    // Data Picker Initialization
+    $("#start-time").datetimepicker({
+        datepicker: { showOtherMonths: true },
+        modal: true,
+        footer: true,
+        format: 'yyyy-mm-dd HH:MM',
+        value: formatDate(startTime)
+    });
+    $("#end-time").datetimepicker({
+        datepicker: { showOtherMonths: true },
+        modal: true,
+        footer: true,
+        format: 'yyyy-mm-dd HH:MM',
+        value: formatDate(endTime)
+    });
+
+    $("#btn-strategy-test").click(function(e) {
+        e.preventDefault();
+        var value = $("#txt-strategy-name").val();
+        var el = $("#strategy-name-list").find("*[value='" + value + "']");
+        if (el.length > 0) {
+            $("#btn-strategy-test").prop("disabled", true);
+            var search = {};
+            search["strategyName"] = value;
+            search["start"] = $("#start-time").val().substring(0, 16);
+            search["end"] = $("#end-time").val().substring(0, 16);
+            $.ajax({
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(search),
+                dataType: 'json',
+                cache: false,
+                timeout: 600000,
+                url: "/quote/teststrategy",
+                success: function(result) {
+                    $("#btn-strategy-test").val("Test Strategy (OK)");
+                    $("#btn-strategy-test").prop("disabled", false);
+                    $('#chart').remove();
+                    $('#graph-container').append('<canvas id="chart" style="width:640px;height:250px"><canvas>');
+                    canvas = document.querySelector('#chart');
+                    $("#chart").empty();
+                    var ctx = canvas.getContext('2d');
+                    lineChart = new Chart(ctx, result);
+                },
+                error: function(result) {
+                    $("#btn-strategy-test").prop("disabled", false);
+                    $("#btn-strategy-test").val("Test Strategy (ERROR)");
+                },
+                complete: function(result) {
+
+                }
+            });
+        }
+    });
+});
+</script>
+    </form>
+    <h3>Strategy Result</h3>
+    <div class="col-10">
+        <div id="graph-container" style="width:75%;">
+            <canvas id="chart" style="width:640px;height:250px"></canvas>
+        </div>
+    </div>
+</main>
+</body>
+</html>

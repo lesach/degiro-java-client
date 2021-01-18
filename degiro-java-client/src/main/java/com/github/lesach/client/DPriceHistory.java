@@ -73,6 +73,10 @@ public class DPriceHistory {
         return dateTimeFormatters.get(resolution);
     }
 
+    public static DateTimeFormatter getDateTimeFormatter(String resolution) {
+        return dateTimeFormatters.get(resolution);
+    }
+
     /// <summary>
     /// Update prices history to have time in second
     /// </summary>

@@ -15,7 +15,7 @@ public interface IChartProvider {
      */
     Chart createChart(DPriceHistory priceHistory);
 
-    LineDataset createLineDataset(List<MeasureModel> values, String label);
+    LineDataset createLineDataset(List<? extends MeasureModel> values, String label);
 
     LineDataset createLineDatasetFrom(List<BigDecimal> values, String label);
 

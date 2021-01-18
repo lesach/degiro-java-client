@@ -37,19 +37,19 @@ public class DNewOrder {
             throw new NullPointerException("DTimeType is null");
         }
 
-        if ((orderType == DOrderType.LIMITED || orderType == DOrderType.LIMITED_STOP_LOSS) && limitPrice == null) {
+        if ((orderType == DOrderType.LIMIT || orderType == DOrderType.STOPLIMIT) && limitPrice == null) {
             throw new NullPointerException("Limit price is null and order type is limited");
         }
 
-        if ((orderType == DOrderType.STOP_LOSS) && limitPrice == null) {
+        if ((orderType == DOrderType.STOPLOSS) && limitPrice == null) {
             throw new NullPointerException("Stop price is null and order type is stop");
         }
 
-        if (orderType != DOrderType.STOP_LOSS && orderType != DOrderType.LIMITED_STOP_LOSS && stopPrice != null) {
+        if (orderType != DOrderType.STOPLOSS && orderType != DOrderType.STOPLIMIT && stopPrice != null) {
             throw new RuntimeException("Stop price only makes sense in STOP_LOSS and LIMITED_STOP_LOSS types. Type was " + orderType.name());
         }
 
-        if (orderType != DOrderType.LIMITED && orderType != DOrderType.LIMITED_STOP_LOSS && stopPrice != null) {
+        if (orderType != DOrderType.LIMIT && orderType != DOrderType.STOPLIMIT && stopPrice != null) {
             throw new RuntimeException("Limit price only makes sense in LIMITED and LIMITED_STOP_LOSS types. Type was " + orderType.name());
         }
     }

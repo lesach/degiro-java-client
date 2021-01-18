@@ -13,13 +13,14 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum DOrderType {
     NULL(-1, "NULL"),
-    LIMITED(0, "LIMIT"),
-    MARKET_ORDER(2, "MARKET"),
-    STOP_LOSS(3, "STOPLOSS"),
-    LIMITED_STOP_LOSS(1, "STOPLIMIT"),
+    LIMIT(0, "LIMIT"),
+    MARKET(2, "MARKET"),
+    STOPLOSS(3, "STOPLOSS"),
+    STOPLIMIT(1, "STOPLIMIT"),
     TRAILINGSTOP(4, "TRAILINGSTOP"),
     STANDARDAMOUNT(5, "STANDARDAMOUNT"),
-    STANDARDSIZE(6, "STANDARDSIZE");
+    STANDARDSIZE(6,"STANDARDSIZE");
+
     private final int value;
     private final String strValue;
 

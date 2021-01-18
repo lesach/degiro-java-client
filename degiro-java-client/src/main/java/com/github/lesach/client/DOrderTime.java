@@ -9,7 +9,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum DOrderTime {
     NULL(-1, "NULL"),
     DAY(1, "DAY"),
-    PERMANENT(3, "GTC");
+    GTC(3, "GTC"),
+    PERMANENT(4, "PERMANENT");
 
     private final int value;
     private final String strValue;

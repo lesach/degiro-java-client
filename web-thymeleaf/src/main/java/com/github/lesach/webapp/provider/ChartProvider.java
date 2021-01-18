@@ -50,7 +50,7 @@ public class ChartProvider implements IChartProvider {
     }
 
     @Override
-    public LineDataset createLineDataset(List<MeasureModel> values, String label) {
+    public LineDataset createLineDataset(List<? extends MeasureModel> values, String label) {
         return createLineDatasetFrom(values.stream().map(MeasureModel::getValue).collect(Collectors.toList()), label);
     }
 
@@ -77,4 +77,57 @@ public class ChartProvider implements IChartProvider {
                 .setSpanGaps(false)
                 .setData(values);
     }
+    /*
+    options: {
+      responsive: true,
+      title: {
+        display: true,
+        text: "Chart.js Combo Bar Line Chart"
+      },
+      tooltips: {
+        mode: "index",
+        intersect: true
+      },
+      annotation: {
+        events: ["click"],
+        annotations: [
+          {
+            drawTime: "afterDatasetsDraw",
+            id: "hline",
+            type: "line",
+            mode: "horizontal",
+            scaleID: "y-axis-0",
+            value: randomScalingFactor(),
+            borderColor: "black",
+            borderWidth: 5,
+            label: {
+              backgroundColor: "red",
+              content: "Test Label",
+              enabled: true
+            },
+            onClick: function(e) {
+              // The annotation is is bound to the `this` variable
+              console.log("Annotation", e.type, this);
+            }
+          },
+          {
+            drawTime: "beforeDatasetsDraw",
+            type: "box",
+            xScaleID: "x-axis-0",
+            yScaleID: "y-axis-0",
+            xMin: "February",
+            xMax: "April",
+            yMin: randomScalingFactor(),
+            yMax: randomScalingFactor(),
+            backgroundColor: "rgba(101, 33, 171, 0.5)",
+            borderColor: "rgb(101, 33, 171)",
+            borderWidth: 1,
+            onClick: function(e) {
+              console.log("Box", e.type, this);
+            }
+          }
+        ]
+      }
+    }
+     */
 }

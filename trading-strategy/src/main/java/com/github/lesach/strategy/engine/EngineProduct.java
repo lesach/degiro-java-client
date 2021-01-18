@@ -1,5 +1,3 @@
-
-
 package com.github.lesach.strategy.engine;
 
 import com.github.lesach.client.*;
@@ -11,7 +9,6 @@ import com.github.lesach.strategy.serie.Indicator;
 import com.github.lesach.strategy.serie.IndicatorProvider;
 import com.github.lesach.strategy.serie.SerieKey;
 import com.github.lesach.strategy.MeasureModel;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -22,9 +19,6 @@ import java.util.stream.Collectors;
 
 public class EngineProduct
 {
-    @Autowired
-    private DeGiroClientInterface deGiroClient;
-
     public DProductDescription Product;
     public ETimeSerieResolutionType Resolution;
     public List<EngineSerieValues> Series = new ArrayList<>();
@@ -47,28 +41,25 @@ public class EngineProduct
     /// </summary>
     public void RefreshIndicators()
     {
-        EngineSerieValues lastSerieValues = Series.stream().filter(ser -> ser.Key.getIndicator().getIndicatorType() == EIndicatorType.Last).findFirst().orElse(null);
-        if (lastSerieValues != null)
-        {
-            Series.stream().filter(e -> (e.Key.getIndicator().getIndicatorType().getValue() > 10) && (e.LastUpdate.isBefore(lastSerieValues.LastUpdate)))
+        Series.stream().filter(ser -> ser.Key.getIndicator().getIndicatorType() == EIndicatorType.Last)
+                .findFirst()
+                .ifPresent(lastSerieValues -> Series.stream().filter(e -> (e.Key.getIndicator().getIndicatorType().getValue() > 10) && (e.LastUpdate.isBefore(lastSerieValues.LastUpdate)))
                 .forEach(engineSerieValues ->
-            {
-                indicatorProvider.ComputeIndicator(lastSerieValues.Values, Resolution, engineSerieValues.Key.getIndicator())
-                        .stream()
-                        .filter(i -> (engineSerieValues.Values.size() == 0) || (i.getDateTime().isAfter(engineSerieValues.Values.stream().map(MeasureModel::getDateTime)
-                        .max(LocalDateTime::compareTo).orElse(LocalDateTime.MIN))))
-                        .forEach(m ->
-                {
-                    engineSerieValues.AddValue(m.getDateTime(), m.getValue());
-                });
-            });
-        }
+                        indicatorProvider.ComputeIndicator(lastSerieValues.Values, Resolution, engineSerieValues.Key.getIndicator())
+                                .stream()
+                                .filter(i -> (engineSerieValues.Values.size() == 0) || (i.getDateTime().isAfter(engineSerieValues.Values.stream().map(MeasureModel::getDateTime)
+                                        .max(LocalDateTime::compareTo).orElse(LocalDateTime.MIN))))
+                                .forEach(m ->
+                                        engineSerieValues.AddValue(m.getDateTime(), m.getValue())
+                                )
+                    )
+                );
     }
 
     /// <summary>
     /// Initialize
     /// </summary>
-    public void Initialize(LocalDateTime start, LocalDateTime end) throws DeGiroException {
+    public void Initialize(DeGiroClientInterface deGiroClient,LocalDateTime start, LocalDateTime end) throws DeGiroException {
         DPriceHistory priceHistory = deGiroClient.GetPriceHistory(Product.getVwdIdentifierType(),
                         Product.getVwdId(),
                         start,
@@ -95,12 +86,14 @@ public class EngineProduct
                 EngineSerieValues engineSerieValues = Series.stream().filter(d -> d.Key.getIndicator().getIndicatorType() == EIndicatorType.Last).findFirst().orElse(null);
                 if (engineSerieValues == null)
                 {
-                    engineSerieValues = new EngineSerieValues(new SerieKey() {{ setProduct(Product);
-                        setIndicator(new Indicator(EIndicatorType.Last)); }}, Resolution);
+                    engineSerieValues = new EngineSerieValues(new SerieKey() {{
+                        setProduct(Product);
+                        setIndicator(new Indicator(EIndicatorType.Last));
+                    }}, Resolution);
                     Series.add(engineSerieValues);
                 }
                 List<MeasureModel> values = getMeasureModels(priceHistory);
-                values.sort((m1, m2) -> m1.getDateTime().compareTo(m2.getDateTime()));
+                values.sort(Comparator.comparing(MeasureModel::getDateTime));
                 for (MeasureModel measureModel : values)
                     engineSerieValues.AddValue(measureModel.getDateTime(), measureModel.getValue());
             }
@@ -110,7 +103,7 @@ public class EngineProduct
 
     public static List<MeasureModel> getMeasureModels(DPriceHistory priceHistory)
     {
-        List<MeasureModel> result = new ArrayList<MeasureModel>();
+        List<MeasureModel> result = new ArrayList<>();
         DPriceHistorySerie priceSerieData = null;
         DPriceHistorySerie productSerieData = null;
         for (DPriceHistorySerie s : priceHistory.getSeries())
@@ -136,7 +129,7 @@ public class EngineProduct
                         .stream()
                         .map(c -> Arrays.asList(c.getKey(), c.getValue().stream().map(d -> d[1]).reduce(BigDecimal.ZERO, BigDecimal::add)
                                 .divide(BigDecimal.valueOf(c.getValue().size()), MathContext.DECIMAL64)))
-                        .sorted((d1, d2) -> d1.get(0).compareTo(d2.get(0)))
+                        .sorted(Comparator.comparing(d -> d.get(0)))
                         .collect(Collectors.toList());
 
                 for (List<BigDecimal> d : averagePrices)
@@ -163,9 +156,7 @@ public class EngineProduct
     {
         if (price.compareTo(BigDecimal.ZERO) > 0)
         {
-            EngineSerieValues engineSerieValues = Series.stream().filter(d -> d.Key.getIndicator().getIndicatorType() == EIndicatorType).findFirst().orElse(null);
-            if (engineSerieValues != null)
-                engineSerieValues.AddValue(dateTime, price);
+            Series.stream().filter(d -> d.Key.getIndicator().getIndicatorType() == EIndicatorType).findFirst().ifPresent(engineSerieValues -> engineSerieValues.AddValue(dateTime, price));
         }
     }
 }
